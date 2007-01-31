@@ -1,0 +1,8 @@
+2007-01-31  Ross Burton  <ross@openedhand.com>
+
+	* main.c:
+	Be a desktop by default.
+
+2007-01-31  Ross Burton  <ross@openedhand.com>
+
+	Initial import.
