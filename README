@@ -1,0 +1,19 @@
+Matchbox Desktop 2, a desktop system for handhelds using the GTK+ stack.
+
+You'll want this in your ~/.gtkrc-2.0:
+
+style "taku-window"
+{
+  font_name = "Sans 16"
+
+  bg[NORMAL] = "#008000"
+  fg[NORMAL] = "#FFFFFF"
+
+  bg[ACTIVE] = "#00CC00"
+  fg[ACTIVE] = "#FFFFFF"
+
+  bg[PRELIGHT] = "#00A000"
+  fg[PRELIGHT] = "#FFFFFF"
+}
+widget "TakuWindow" style "taku-window"
+widget "TakuWindow.*" style "taku-window"
