@@ -1,3 +1,4 @@
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include "taku-table.h"
 #include "taku-icon-tile.h"
@@ -71,7 +72,8 @@ main (int argc, char **argv)
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
-  gtk_widget_set_name(window, "TakuWindow");
+  gtk_widget_set_name (window, "TakuWindow");
+  gtk_window_set_title (GTK_WINDOW (window), _("Desktop"));
 
 #if ! STANDALONE
   gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);

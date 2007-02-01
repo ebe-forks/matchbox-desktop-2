@@ -1,5 +1,10 @@
 2007-02-01  Ross Burton  <ross@openedhand.com>
 
+	* main.c:
+	Set window title.
+
+2007-02-01  Ross Burton  <ross@openedhand.com>
+
 	* xutil.[ch]:
 	* Makefile.am:
 	Add X utility functions.
