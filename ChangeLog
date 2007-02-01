@@ -1,3 +1,13 @@
+2007-02-01  Ross Burton  <ross@openedhand.com>
+
+	* xutil.[ch]:
+	* Makefile.am:
+	Add X utility functions.
+
+	* main.c:
+	Position the desktop according to the work area set by the window
+	manager.
+
 2007-01-31  Ross Burton  <ross@openedhand.com>
 
 	* main.c:

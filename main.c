@@ -2,6 +2,7 @@
 #include "taku-table.h"
 #include "taku-icon-tile.h"
 #include "taku-launcher-tile.h"
+#include "xutil.h"
 
 /*
  * Load all .desktop files in @datadir/applications/, and add them to @table.
@@ -59,6 +60,8 @@ main (int argc, char **argv)
 {
   GtkWidget *window, *scrolled, *table;
   const char * const *dirs;
+  /* Sane defaults in case something terrible happens in get_workarea() */
+  int x = 0, y = 0, w = 640, h = 480;
 
   gtk_init (&argc, &argv);
   
@@ -69,12 +72,17 @@ main (int argc, char **argv)
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
   gtk_widget_set_name(window, "TakuWindow");
-#if STANDALONE
-  gtk_window_set_default_size (GTK_WINDOW (window), 640, 480);
-#else
+
+#if ! STANDALONE
   gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
-  gtk_window_fullscreen (GTK_WINDOW (window));
+  if (x_get_workarea (&x, &y, &w, &h)) {
+    gtk_window_set_default_size (GTK_WINDOW (window), w, h);
+    gtk_window_move (GTK_WINDOW (window), x, y);
+  }
+#else
+  gtk_window_set_default_size (GTK_WINDOW (window), w, h);
 #endif
+
   gtk_widget_show (window);
 
   scrolled = gtk_scrolled_window_new (NULL, NULL);

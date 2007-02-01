@@ -13,6 +13,7 @@ matchbox_desktop_SOURCES = \
 	taku-launcher-tile.h taku-launcher-tile.c \
 	taku-table.h taku-table.c \
 	launcher-util.h launcher-util.c \
+	xutil.h xutil.c \
 	main.c
 
 # make maintainer-clean should remove *everything* 
