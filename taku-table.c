@@ -101,10 +101,12 @@ calculate_columns (GtkWidget *widget)
   if (table->priv->columns != new_cols) {
     table->priv->columns = new_cols;
     table->priv->x = table->priv->y = 0;
-    gtk_table_resize (GTK_TABLE (table), 1, 1);
     reflowing = TRUE;
     gtk_container_foreach (GTK_CONTAINER (table), reflow, table);
     reflowing = FALSE;
+
+    /* Crop table */
+    gtk_table_resize (GTK_TABLE (table), 1, 1);
   }
 
   pango_font_metrics_unref (metrics);
@@ -116,9 +118,11 @@ taku_table_size_allocate (GtkWidget     *widget,
 {
   /* TODO: to work around viewport bug, connect to the scrolled window's
      size-allocate instead */
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->size_allocate) (widget, allocation);
+  widget->allocation = *allocation;
 
   calculate_columns (widget);
+
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->size_allocate) (widget, allocation);
 }
 
 static void
