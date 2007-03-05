@@ -186,6 +186,8 @@ launcher_parse_desktop_file (const char *filename, GError **error)
 
   data->icon = get_desktop_string (key_file, "Icon");
 
+  data->categories = get_desktop_string (key_file, "Categories");
+
   data->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
 
   g_key_file_free (key_file);
@@ -323,6 +325,7 @@ launcher_destroy (LauncherData *data)
   g_free (data->name);
   g_free (data->description);
   g_free (data->icon);
+  g_free (data->categories);
   g_strfreev (data->argv);
   g_slice_free (LauncherData, data);
 }
