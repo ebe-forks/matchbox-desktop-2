@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
+#include "eggsequence.h"
 #include "taku-table.h"
+#include "taku-icon-tile.h"
 
 G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
 
@@ -10,6 +12,8 @@ struct _TakuTablePrivate
 {
   int columns;
   int x, y;
+  gboolean reflowing;
+  EggSequence *seq;
 };
 
 static gboolean
@@ -32,41 +36,13 @@ on_tile_focus (GtkWidget *widget, GdkEventFocus *event, gpointer user_data)
   return FALSE;
 }
 
-/*
- * Implementation of gtk_container_add, so that applications can just call that
- * and this class manages the position.
- */
 static void
-container_add (GtkContainer *container, GtkWidget *widget)
-{
-  TakuTable *self = TAKU_TABLE (container);
-
-  g_return_if_fail (self);
-
-  /* Attach the tile to the current coordinates */
-  gtk_table_attach (GTK_TABLE (container), widget,
-                    self->priv->x, self->priv->x + 1,
-                    self->priv->y, self->priv->y + 1,
-                    GTK_EXPAND | GTK_FILL | GTK_SHRINK,
-                    0,
-                    0, 0);
-
-  /* If we've reached the end of the row, move to the next one */
-  if (++self->priv->x >= self->priv->columns) {
-    self->priv->x = 0;
-    self->priv->y++;
-  }
-  
-  g_signal_connect (widget, "focus-in-event", G_CALLBACK (on_tile_focus), self);
-}
-
-static void
-reflow (GtkWidget *widget, gpointer user_data)
+reflow_foreach (gpointer widget, gpointer user_data)
 {
   TakuTable *table = TAKU_TABLE (user_data);
   GtkContainer *container = GTK_CONTAINER (user_data);
 
-  gtk_container_child_set (container, widget,
+  gtk_container_child_set (container, GTK_WIDGET (widget),
                            "left-attach", table->priv->x,
                            "right-attach", table->priv->x + 1,
                            "top-attach", table->priv->y,
@@ -79,9 +55,96 @@ reflow (GtkWidget *widget, gpointer user_data)
 }
 
 static void
+reflow (TakuTable *table)
+{
+  /* Only reflow when necessary */
+  if (!GTK_WIDGET_REALIZED (table))
+    return;
+
+  table->priv->x = table->priv->y = 0;
+
+  table->priv->reflowing = TRUE;
+  egg_sequence_foreach (table->priv->seq, reflow_foreach, table);
+  table->priv->reflowing = FALSE;
+
+  /* Crop table */
+  gtk_table_resize (GTK_TABLE (table), 1, 1);
+}
+
+static int
+sort (gconstpointer a,
+      gconstpointer b,
+      gpointer      user_data)
+{
+  TakuIconTile *ta, *tb;
+
+  ta = TAKU_ICON_TILE (a);
+  tb = TAKU_ICON_TILE (b);
+
+  return g_utf8_collate (taku_icon_tile_get_primary (ta),
+                         taku_icon_tile_get_primary (tb));
+}
+
+/*
+ * Implementation of gtk_container_add, so that applications can just call that
+ * and this class manages the position.
+ */
+static void
+container_add (GtkContainer *container, GtkWidget *widget)
+{
+  TakuTable *self = TAKU_TABLE (container);
+
+  g_return_if_fail (self);
+  g_return_if_fail (TAKU_IS_ICON_TILE (widget));
+
+  egg_sequence_insert_sorted (self->priv->seq, widget, sort, NULL);
+
+  (* GTK_CONTAINER_CLASS (taku_table_parent_class)->add) (container, widget);
+
+  reflow (self);
+
+  g_signal_connect (widget, "focus-in-event", G_CALLBACK (on_tile_focus), self);
+}
+
+static int
+search (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+  if (a < b)
+    return -1;
+  else if (a > b)
+    return 1;
+  else
+    return 0;
+}
+
+static void
+container_remove (GtkContainer *container, GtkWidget *widget)
+{
+  TakuTable *self = TAKU_TABLE (container);
+  EggSequenceIter *iter;
+
+  g_return_if_fail (self);
+
+  /* Find the appropriate iter first */
+  iter = egg_sequence_search (self->priv->seq,
+                              widget,
+                              search,
+                              NULL);
+  iter = egg_sequence_iter_prev (iter);
+  if (egg_sequence_get (iter) != widget)
+    return;
+
+  /* And then remove it */
+  egg_sequence_remove (iter);
+
+  (* GTK_CONTAINER_CLASS (taku_table_parent_class)->remove) (container, widget);
+
+  reflow (self);
+}
+
+static void
 calculate_columns (GtkWidget *widget)
 {
-  static gboolean reflowing = FALSE;
   TakuTable *table = TAKU_TABLE (widget);
   PangoContext *context;
   PangoFontMetrics *metrics;
@@ -89,7 +152,7 @@ calculate_columns (GtkWidget *widget)
 
   /* If we are currently reflowing the tiles, or the final allocation hasn't
      been decided yet, return */
-  if (reflowing || widget->allocation.width <= 1)
+  if (table->priv->reflowing || widget->allocation.width <= 1)
     return;
 
   context = gtk_widget_get_pango_context (widget);
@@ -100,13 +163,8 @@ calculate_columns (GtkWidget *widget)
 
   if (table->priv->columns != new_cols) {
     table->priv->columns = new_cols;
-    table->priv->x = table->priv->y = 0;
-    reflowing = TRUE;
-    gtk_container_foreach (GTK_CONTAINER (table), reflow, table);
-    reflowing = FALSE;
 
-    /* Crop table */
-    gtk_table_resize (GTK_TABLE (table), 1, 1);
+    reflow (table);
   }
 
   pango_font_metrics_unref (metrics);
@@ -170,7 +228,8 @@ taku_table_class_init (TakuTableClass *klass)
   widget_class->size_allocate = taku_table_size_allocate;
   widget_class->style_set = taku_table_style_set;
   
-  container_class->add = container_add;
+  container_class->add    = container_add;
+  container_class->remove = container_remove;
 }
 
 static void
@@ -183,6 +242,10 @@ taku_table_init (TakuTable *self)
   gtk_table_set_row_spacings (GTK_TABLE (self), 6);
   gtk_table_set_col_spacings (GTK_TABLE (self), 6);
   self->priv->columns = 2;
+
+  self->priv->reflowing = FALSE;
+
+  self->priv->seq = egg_sequence_new (NULL);
 }
 
 GtkWidget *

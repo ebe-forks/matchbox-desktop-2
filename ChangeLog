@@ -1,3 +1,23 @@
+2007-03-10  Jorn Baayen  <jorn@openedhand.com>
+
+	* taku-icon-tile.c: (taku_icon_tile_set_primary),
+	(taku_icon_tile_get_primary), (taku_icon_tile_set_secondary):
+	* taku-icon-tile.h:
+	Add get_{primary,secondary} methods.
+
+	* Makefile.am:
+	* eggsequence.c:
+	* eggsequence.h:
+	Add EggSequence.
+
+	* taku-table.c: (on_tile_focus), (reflow_foreach), (reflow),
+	(sort), (container_add), (search), (container_remove),
+	(calculate_columns), (taku_table_size_allocate),
+	(taku_table_style_set), (taku_table_get_property),
+	(taku_table_set_property), (taku_table_class_init),
+	(taku_table_init):
+	Use EggSequence to sort tiles.
+
 2007-03-05  Ross Burton  <ross@openedhand.com>
 
 	* launcher-util.[ch]:

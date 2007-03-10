@@ -140,10 +140,22 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
   gtk_label_set_text (GTK_LABEL (tile->priv->primary), text);
 }
 
+const char *
+taku_icon_tile_get_primary (TakuIconTile *tile)
+{
+  return gtk_label_get_text (GTK_LABEL (tile->priv->primary));
+}
+
 void
 taku_icon_tile_set_secondary (TakuIconTile *tile, const char *text)
 {
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_label_set_text (GTK_LABEL (tile->priv->secondary), text);
+}
+
+const char *
+taku_icon_tile_get_secondary (TakuIconTile *tile)
+{
+  return gtk_label_get_text (GTK_LABEL (tile->priv->secondary));
 }

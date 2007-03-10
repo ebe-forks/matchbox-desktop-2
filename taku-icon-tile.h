@@ -45,7 +45,9 @@ GtkWidget* taku_icon_tile_new (void);
 void taku_icon_tile_set_pixbuf (TakuIconTile *tile, GdkPixbuf *pixbuf);
 void taku_icon_tile_set_icon_name (TakuIconTile *tile, const char *name);
 void taku_icon_tile_set_primary (TakuIconTile *tile, const char *text);
+const char *taku_icon_tile_get_primary (TakuIconTile *tile);
 void taku_icon_tile_set_secondary (TakuIconTile *tile, const char *text);
+const char *taku_icon_tile_get_secondary (TakuIconTile *tile);
 
 G_END_DECLS
 
