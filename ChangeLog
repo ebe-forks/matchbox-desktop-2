@@ -1,5 +1,11 @@
 2007-03-12  Ross Burton  <ross@openedhand.com>
 
+	* main.c:
+	Basic and nasty hack to add groups.  Currently implemented with a
+	fixed mapping, and a notebook.
+
+2007-03-12  Ross Burton  <ross@openedhand.com>
+
 	* taku-launcher-tile.[ch]:
 	Add taku_launcher_tile_get_categories().
 
