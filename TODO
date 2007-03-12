@@ -14,3 +14,7 @@ Favourite Idea 2
 Single Instance
 - Need to support matchbox single instance hack
 - Support GtkUnique directly via keys in desktop files?
+
+Misc
+- sorting assumes icontile.  add taku_tile_get_sort_key() and in icon tile
+  return the primary.
