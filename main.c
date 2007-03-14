@@ -9,6 +9,144 @@
 
 /* A hash of group ID (not display name) to a TakuTable. */
 static GHashTable *groups;
+static GtkNotebook *notebook;
+static GtkLabel *switcher_label;
+
+static void
+switch_page_cb (GtkNotebook *notebook,
+                GtkNotebookPage *nb_page, int page_num, gpointer user_data)
+{
+  GtkWidget *page;
+  const char *text;
+
+  page = gtk_notebook_get_nth_page (notebook, page_num);
+
+  text = gtk_notebook_get_tab_label_text (notebook, page);
+  gtk_label_set_text (switcher_label, text);
+}
+
+static void
+prev_page (GtkButton *button, gpointer user_data)
+{
+  int page, last_page;
+
+  last_page = gtk_notebook_get_n_pages (notebook) - 1;
+
+  page = gtk_notebook_get_current_page (notebook);
+  if (page == 0)
+    page = last_page;
+  else
+    page--;
+
+  gtk_notebook_set_current_page (notebook, page);
+}
+
+static void
+next_page (GtkButton *button, gpointer user_data)
+{
+  int page, last_page;
+
+  last_page = gtk_notebook_get_n_pages (notebook) - 1;
+
+  page = gtk_notebook_get_current_page (notebook);
+  if (page == last_page)
+    page = 0;
+  else
+    page++;
+
+  gtk_notebook_set_current_page (notebook, page);
+}
+
+static void
+switch_to_page (GtkMenuItem *menu_item,
+                gpointer     user_data)
+{
+  GtkWidget *widget = GTK_WIDGET (menu_item);
+  GList *children, *l;
+  int i = 0;
+
+  /* Find menu item index */
+  children = gtk_container_get_children (GTK_CONTAINER (widget->parent));
+  for (l = children; l; l = l->next) {
+    if (l->data == menu_item)
+      break;
+    
+    i++;
+  }
+
+  /* Switch to page */
+  gtk_notebook_set_current_page (notebook, i);
+}
+
+static void
+position_menu (GtkMenu *menu,
+               int *x, int *y, gboolean *push_in, gpointer user_data)
+{
+  GtkWidget *widget = GTK_WIDGET (user_data);
+
+  gdk_window_get_origin (widget->window, x, y);
+
+  *x += widget->allocation.x;
+  *y += widget->allocation.y + widget->allocation.height;
+
+  *push_in = TRUE;
+}
+
+static void
+popdown_menu (GtkMenuShell *menu_shell, gpointer user_data)
+{
+  GtkToggleButton *button = GTK_TOGGLE_BUTTON (user_data);
+
+  /* Button up */
+  gtk_toggle_button_set_active (button, FALSE);
+
+  /* Destroy menu */
+  gtk_widget_destroy (GTK_WIDGET (menu_shell));
+}
+
+static gboolean
+popup_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
+{
+  GtkWidget *menu;
+  GList *children, *l;
+
+  /* Button down */
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
+
+  /* Create menu */
+  menu = gtk_menu_new ();
+  gtk_widget_set_size_request (menu, widget->allocation.width, -1);
+
+  g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), widget);
+
+  children = gtk_container_get_children (GTK_CONTAINER (notebook));
+  for (l = children; l; l = l->next) {
+    const char *text;
+    GtkWidget *menu_item, *label;
+
+    text = gtk_notebook_get_tab_label_text (notebook, l->data);
+
+    menu_item = gtk_menu_item_new ();
+    g_signal_connect (menu_item, "activate", G_CALLBACK (switch_to_page), NULL);
+    gtk_widget_show (menu_item);
+    gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
+
+    label = gtk_label_new (text);
+    gtk_misc_set_alignment (GTK_MISC (label), 0.5, 0.0);
+    gtk_widget_show (label);
+    gtk_container_add (GTK_CONTAINER (menu_item), label);
+  }
+
+  /* Popup menu */
+  gtk_menu_popup (GTK_MENU (menu),
+                  NULL, NULL,
+                  position_menu,
+                  widget,
+                  event->button,
+                  gdk_event_get_time ((GdkEvent *) event));
+
+  return TRUE;
+}
 
 /*
  * Load all .desktop files in @datadir/applications/, and add them to @table.
@@ -86,23 +224,28 @@ load_data_dir (const char *datadir)
 }
 
 static void
-make_table (const char *id, GtkNotebook *notebook)
+make_table (const char *id, const char *label)
 {
-  GtkWidget *scrolled, *table;
+  GtkWidget *scrolled, *viewport, *table;
 
   g_assert (id);
-  g_assert (notebook);
-
-  table = taku_table_new ();
-  gtk_widget_show (table);
 
   scrolled = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
-                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_widget_show (scrolled);
-  gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled), table);
+
+  viewport = gtk_viewport_new (NULL, NULL);
+  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
+                                GTK_SHADOW_NONE);
+  gtk_widget_show (viewport);
+  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
+
+  table = taku_table_new ();
+  gtk_widget_show (table);
+  gtk_container_add (GTK_CONTAINER (viewport), table);
   
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, gtk_label_new (id));
+  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, gtk_label_new (label));
   
   g_hash_table_insert (groups, g_strdup (id), table);
 }
@@ -110,7 +253,7 @@ make_table (const char *id, GtkNotebook *notebook)
 int
 main (int argc, char **argv)
 {
-  GtkWidget *window, *box, *notebook;
+  GtkWidget *window, *box, *hbox, *button, *arrow;
   const char * const *dirs;
 #ifndef STANDALONE
   /* Sane defaults in case something terrible happens in x_get_workarea() */
@@ -145,19 +288,57 @@ main (int argc, char **argv)
 
   gtk_widget_show (window);
 
+  /* Main VBox */
   box = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (box);
   gtk_container_add (GTK_CONTAINER (window), box);
 
-  notebook = gtk_notebook_new ();
-  //gtk_notebook_set_show_tabs (GTK_NOTEBOOK (notebook), FALSE);
-  gtk_widget_show (notebook);
-  gtk_box_pack_start (GTK_BOX (box), notebook, TRUE, TRUE, 0);
+  /* Navigation bar */
+  hbox = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox);
+  gtk_box_pack_start (GTK_BOX (box), hbox, FALSE, TRUE, 0);
 
-  make_table ("other", GTK_NOTEBOOK (notebook));
-  make_table ("office", GTK_NOTEBOOK (notebook));
-  make_table ("settings", GTK_NOTEBOOK (notebook));
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook), 0);
+  button = gtk_button_new ();
+  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+  g_signal_connect (button, "clicked", G_CALLBACK (prev_page), NULL);
+  gtk_widget_show (button);
+  gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+
+  arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
+  gtk_widget_show (arrow);
+  gtk_container_add (GTK_CONTAINER (button), arrow);
+
+  button = gtk_toggle_button_new ();
+  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+  g_signal_connect (button, "button-press-event", G_CALLBACK (popup_menu), NULL);
+  gtk_widget_show (button);
+  gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+
+  switcher_label = GTK_LABEL (gtk_label_new (NULL));
+  gtk_widget_show (GTK_WIDGET (switcher_label));
+  gtk_container_add (GTK_CONTAINER (button), GTK_WIDGET (switcher_label));
+
+  button = gtk_button_new ();
+  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+  g_signal_connect (button, "clicked", G_CALLBACK (next_page), NULL);
+  gtk_widget_show (button);
+  gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+
+  arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
+  gtk_widget_show (arrow);
+  gtk_container_add (GTK_CONTAINER (button), arrow);
+
+  /* Notebook */
+  notebook = GTK_NOTEBOOK (gtk_notebook_new ());
+  gtk_notebook_set_show_tabs (notebook, FALSE);
+  g_signal_connect (notebook, "switch-page", G_CALLBACK (switch_page_cb), NULL);
+  gtk_widget_show (GTK_WIDGET (notebook));
+  gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
+
+  make_table ("other", _("Other"));
+  make_table ("office", _("Office"));
+  make_table ("settings", _("Settings"));
+  gtk_notebook_set_current_page (notebook, 0);
   
   /* Load all desktop files in the system data directories, and the user data
      directory. TODO: would it be best to do this in an idle handler and

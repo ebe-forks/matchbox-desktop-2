@@ -1,3 +1,12 @@
+2007-03-14  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (position_menu), (popdown_menu), (popup_menu),
+	(load_data_dir), (make_table), (main):
+	Add arrows and menu for group switching. Needs some cleanup still.
+
+	* taku-table.c: (reflow_foreach):
+	Don't expand cells vertically.
+
 2007-03-12  Ross Burton  <ross@openedhand.com>
 
 	* main.c:

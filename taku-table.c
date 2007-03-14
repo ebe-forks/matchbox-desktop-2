@@ -47,6 +47,7 @@ reflow_foreach (gpointer widget, gpointer user_data)
                            "right-attach", table->priv->x + 1,
                            "top-attach", table->priv->y,
                            "bottom-attach", table->priv->y + 1,
+                           "y-options", GTK_FILL,
                            NULL);
   if (++table->priv->x >= table->priv->columns) {
     table->priv->x = 0;
