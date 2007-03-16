@@ -1,5 +1,10 @@
 2007-03-16  Jorn Baayen  <jorn@openedhand.com>
 
+	* main.c: (main):
+	Name arrow buttons for theming.
+
+2007-03-16  Jorn Baayen  <jorn@openedhand.com>
+
 	* taku-table.c: (reflow), (calculate_columns):
 
 	Always resize the table to the amount of columns calculated.

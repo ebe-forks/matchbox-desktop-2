@@ -301,6 +301,7 @@ main (int argc, char **argv)
   gtk_box_pack_start (GTK_BOX (box), hbox, FALSE, TRUE, 0);
 
   button = gtk_button_new ();
+  gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
   g_signal_connect (button, "clicked", G_CALLBACK (prev_page), NULL);
   gtk_widget_show (button);
@@ -321,6 +322,7 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (button), GTK_WIDGET (switcher_label));
 
   button = gtk_button_new ();
+  gtk_widget_set_name (button, "MatchboxDesktopNextButton");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
   g_signal_connect (button, "clicked", G_CALLBACK (next_page), NULL);
   gtk_widget_show (button);
