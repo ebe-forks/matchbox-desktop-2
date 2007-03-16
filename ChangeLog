@@ -1,3 +1,9 @@
+2007-03-16  Jorn Baayen  <jorn@openedhand.com>
+
+	* taku-table.c: (reflow), (calculate_columns):
+
+	Always resize the table to the amount of columns calculated.
+
 2007-03-16  Ross Burton  <ross@openedhand.com>
 
 	* main.c:

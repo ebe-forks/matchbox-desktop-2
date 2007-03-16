@@ -69,7 +69,7 @@ reflow (TakuTable *table)
   table->priv->reflowing = FALSE;
 
   /* Crop table */
-  gtk_table_resize (GTK_TABLE (table), 1, 1);
+  gtk_table_resize (GTK_TABLE (table), table->priv->columns, 1);
 }
 
 static int
@@ -160,7 +160,7 @@ calculate_columns (GtkWidget *widget)
   metrics = pango_context_get_metrics (context, widget->style->font_desc, NULL);
 
   width = PANGO_PIXELS (25 * pango_font_metrics_get_approximate_char_width (metrics));
-  new_cols = widget->allocation.width / width;
+  new_cols = MAX (1, widget->allocation.width / width);
 
   if (table->priv->columns != new_cols) {
     table->priv->columns = new_cols;
