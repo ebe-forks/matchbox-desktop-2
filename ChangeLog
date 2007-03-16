@@ -1,3 +1,8 @@
+2007-03-16  Ross Burton  <ross@openedhand.com>
+
+	* main.c:
+	Add a Games group.
+
 2007-03-14  Jorn Baayen  <jorn@openedhand.com>
 
 	* main.c: (position_menu), (popdown_menu), (popup_menu),

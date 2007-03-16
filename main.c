@@ -203,6 +203,8 @@ load_data_dir (const char *datadir)
       table = g_hash_table_lookup (groups, "office");
     } else if (strstr (categories, ";Settings;")) {
       table = g_hash_table_lookup (groups, "settings");
+    } else if (strstr (categories, "Game;")) {
+      table = g_hash_table_lookup (groups, "games");
     } else {
       table = g_hash_table_lookup (groups, "other");
     }
@@ -335,8 +337,9 @@ main (int argc, char **argv)
   gtk_widget_show (GTK_WIDGET (notebook));
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
 
-  make_table ("other", _("Other"));
   make_table ("office", _("Office"));
+  make_table ("games", _("Games"));
+  make_table ("other", _("Other"));
   make_table ("settings", _("Settings"));
   gtk_notebook_set_current_page (notebook, 0);
   
