@@ -14,6 +14,7 @@ struct _TakuTablePrivate
   int x, y;
   gboolean reflowing;
   EggSequence *seq;
+  GList *dummies;
 };
 
 static gboolean
@@ -47,7 +48,6 @@ reflow_foreach (gpointer widget, gpointer user_data)
                            "right-attach", table->priv->x + 1,
                            "top-attach", table->priv->y,
                            "bottom-attach", table->priv->y + 1,
-                           "y-options", GTK_FILL,
                            NULL);
   if (++table->priv->x >= table->priv->columns) {
     table->priv->x = 0;
@@ -58,18 +58,53 @@ reflow_foreach (gpointer widget, gpointer user_data)
 static void
 reflow (TakuTable *table)
 {
+  int i;
+
   /* Only reflow when necessary */
   if (!GTK_WIDGET_REALIZED (table))
     return;
 
+  /* Remove dummies */
+  while (table->priv->dummies) {
+    /* Call into the parent class straight away in order to bypass our
+     * own remove implementation. */
+    (* GTK_CONTAINER_CLASS (taku_table_parent_class)->remove)
+      (GTK_CONTAINER (table), table->priv->dummies->data);
+
+    table->priv->dummies = g_list_delete_link (table->priv->dummies,
+                                               table->priv->dummies);
+  }
+
+  /* Reflow children */
   table->priv->x = table->priv->y = 0;
 
   table->priv->reflowing = TRUE;
   egg_sequence_foreach (table->priv->seq, reflow_foreach, table);
   table->priv->reflowing = FALSE;
 
+  /* Add dummy items if necessary to get required amount of columns */
+  for (i = egg_sequence_get_length (table->priv->seq);
+       i < table->priv->columns; i++) {
+    GtkWidget *dummy = gtk_label_new (NULL);
+    gtk_widget_show (dummy);
+
+    gtk_table_attach (GTK_TABLE (table),
+                      dummy,
+                      table->priv->x,
+                      table->priv->x + 1,
+                      table->priv->y,
+                      table->priv->y + 1,
+                      GTK_FILL | GTK_EXPAND,
+                      GTK_FILL,
+                      0,
+                      0);
+    table->priv->x++;
+
+    table->priv->dummies = g_list_prepend (table->priv->dummies, dummy);
+  }
+
   /* Crop table */
-  gtk_table_resize (GTK_TABLE (table), table->priv->columns, 1);
+  gtk_table_resize (GTK_TABLE (table), 1, 1);
 }
 
 static int
@@ -100,7 +135,8 @@ container_add (GtkContainer *container, GtkWidget *widget)
 
   egg_sequence_insert_sorted (self->priv->seq, widget, sort, NULL);
 
-  (* GTK_CONTAINER_CLASS (taku_table_parent_class)->add) (container, widget);
+  gtk_table_attach (GTK_TABLE (container), widget, 0, 1, 0, 1,
+                    GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
 
   reflow (self);
 
@@ -173,7 +209,7 @@ calculate_columns (GtkWidget *widget)
 
 static void
 taku_table_size_allocate (GtkWidget     *widget,
-                         GtkAllocation *allocation)
+                          GtkAllocation *allocation)
 {
   /* TODO: to work around viewport bug, connect to the scrolled window's
      size-allocate instead */
@@ -186,7 +222,7 @@ taku_table_size_allocate (GtkWidget     *widget,
 
 static void
 taku_table_style_set (GtkWidget *widget,
-                     GtkStyle  *previous_style)
+                      GtkStyle  *previous_style)
 {
   (* GTK_WIDGET_CLASS (taku_table_parent_class)->style_set) (widget, previous_style);
 
@@ -196,7 +232,7 @@ taku_table_style_set (GtkWidget *widget,
 
 static void
 taku_table_get_property (GObject *object, guint property_id,
-                              GValue *value, GParamSpec *pspec)
+                         GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
   default:
@@ -206,12 +242,24 @@ taku_table_get_property (GObject *object, guint property_id,
 
 static void
 taku_table_set_property (GObject *object, guint property_id,
-                              const GValue *value, GParamSpec *pspec)
+                         const GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
+}
+
+static void
+taku_table_finalize (GObject *object)
+{
+  TakuTable *table = TAKU_TABLE (object);
+
+  egg_sequence_free (table->priv->seq);
+
+  g_list_free (table->priv->dummies);
+
+  G_OBJECT_CLASS (taku_table_parent_class)->finalize (object);
 }
 
 static void
@@ -225,6 +273,7 @@ taku_table_class_init (TakuTableClass *klass)
 
   object_class->get_property = taku_table_get_property;
   object_class->set_property = taku_table_set_property;
+  object_class->finalize     = taku_table_finalize;
   
   widget_class->size_allocate = taku_table_size_allocate;
   widget_class->style_set = taku_table_style_set;
@@ -247,6 +296,8 @@ taku_table_init (TakuTable *self)
   self->priv->reflowing = FALSE;
 
   self->priv->seq = egg_sequence_new (NULL);
+
+  self->priv->dummies = NULL;
 }
 
 GtkWidget *

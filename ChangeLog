@@ -1,3 +1,13 @@
+2007-03-20  Jorn Baayen  <jorn@openedhand.com>
+
+	* taku-table.c: (reflow_foreach), (reflow), (sort),
+	(container_add), (container_remove), (calculate_columns),
+	(taku_table_size_allocate), (taku_table_style_set),
+	(taku_table_get_property), (taku_table_set_property),
+	(taku_table_finalize), (taku_table_class_init), (taku_table_init):
+	Add dummy widgets to fill the calculated number of columns when
+	not enough launchers are available.
+
 2007-03-16  Jorn Baayen  <jorn@openedhand.com>
 
 	* main.c: (main):
