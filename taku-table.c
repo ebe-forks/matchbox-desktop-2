@@ -61,7 +61,7 @@ reflow (TakuTable *table)
   int i;
 
   /* Only reflow when necessary */
-  if (!GTK_WIDGET_REALIZED (table))
+  if (!GTK_WIDGET_VISIBLE (table))
     return;
 
   /* Remove dummies */
@@ -189,7 +189,8 @@ calculate_columns (GtkWidget *widget)
 
   /* If we are currently reflowing the tiles, or the final allocation hasn't
      been decided yet, return */
-  if (table->priv->reflowing || widget->allocation.width <= 1)
+  if (!GTK_WIDGET_VISIBLE (widget) || table->priv->reflowing ||
+      widget->allocation.width <= 1)
     return;
 
   context = gtk_widget_get_pango_context (widget);

@@ -1,5 +1,11 @@
 2007-03-20  Jorn Baayen  <jorn@openedhand.com>
 
+	* taku-table.c: (reflow), (calculate_columns):
+	Check for GTK_WIDGET_VISIBLE instead of GTK_WIDGET_REALIZED.
+	Fixes weird inially-showing-just-one-launcher bug.
+
+2007-03-20  Jorn Baayen  <jorn@openedhand.com>
+
 	* main.c: (make_table), (main):
 	Only show tables when done loading. This reduces the number
 	of reflows and thus startup time.
