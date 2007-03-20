@@ -235,16 +235,13 @@ make_table (const char *id, const char *label)
   scrolled = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-  gtk_widget_show (scrolled);
 
   viewport = gtk_viewport_new (NULL, NULL);
   gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
                                 GTK_SHADOW_NONE);
-  gtk_widget_show (viewport);
   gtk_container_add (GTK_CONTAINER (scrolled), viewport);
 
   table = taku_table_new ();
-  gtk_widget_show (table);
   gtk_container_add (GTK_CONTAINER (viewport), table);
   
   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, gtk_label_new (label));
@@ -336,7 +333,6 @@ main (int argc, char **argv)
   notebook = GTK_NOTEBOOK (gtk_notebook_new ());
   gtk_notebook_set_show_tabs (notebook, FALSE);
   g_signal_connect (notebook, "switch-page", G_CALLBACK (switch_page_cb), NULL);
-  gtk_widget_show (GTK_WIDGET (notebook));
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
 
   make_table ("office", _("Office"));
@@ -352,6 +348,8 @@ main (int argc, char **argv)
     load_data_dir (*dirs);
   }
   load_data_dir (g_get_user_data_dir ());
+
+  gtk_widget_show_all (GTK_WIDGET (notebook));
 
   gtk_main();
 

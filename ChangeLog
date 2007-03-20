@@ -1,5 +1,11 @@
 2007-03-20  Jorn Baayen  <jorn@openedhand.com>
 
+	* main.c: (make_table), (main):
+	Only show tables when done loading. This reduces the number
+	of reflows and thus startup time.
+
+2007-03-20  Jorn Baayen  <jorn@openedhand.com>
+
 	* taku-table.c: (reflow_foreach), (reflow), (sort),
 	(container_add), (container_remove), (calculate_columns),
 	(taku_table_size_allocate), (taku_table_style_set),
