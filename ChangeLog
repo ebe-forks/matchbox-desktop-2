@@ -1,5 +1,13 @@
 2007-03-22  Ross Burton  <ross@openedhand.com>
 
+	* *.[ch]:
+	Add license block.
+	
+	* AUTHORS:
+	Add Jorn.
+
+2007-03-22  Ross Burton  <ross@openedhand.com>
+
 	* configure.ac:
 	Add --enable-standalone.
 
