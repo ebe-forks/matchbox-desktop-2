@@ -60,6 +60,23 @@ next_page (GtkButton *button, gpointer user_data)
   gtk_notebook_set_current_page (notebook, page);
 }
 
+/* Handle failed focus events by switching between pages */
+static gboolean
+focus_cb (GtkWidget *widget, GtkDirectionType direction, gpointer user_data)
+{
+  if (direction == GTK_DIR_LEFT) {
+    prev_page (NULL, NULL);
+
+    return TRUE;
+  } else if (direction == GTK_DIR_RIGHT) {
+    next_page (NULL, NULL);
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 static void
 switch_to_page (GtkMenuItem *menu_item,
                 gpointer     user_data)
@@ -249,6 +266,7 @@ make_table (const char *id, const char *label)
   gtk_container_add (GTK_CONTAINER (scrolled), viewport);
 
   table = taku_table_new ();
+  g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
   gtk_container_add (GTK_CONTAINER (viewport), table);
   
   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, gtk_label_new (label));
