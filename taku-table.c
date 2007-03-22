@@ -219,7 +219,7 @@ calculate_columns (GtkWidget *widget)
   context = gtk_widget_get_pango_context (widget);
   metrics = pango_context_get_metrics (context, widget->style->font_desc, NULL);
 
-  width = PANGO_PIXELS (25 * pango_font_metrics_get_approximate_char_width (metrics));
+  width = PANGO_PIXELS (30 * pango_font_metrics_get_approximate_char_width (metrics));
   new_cols = MAX (1, widget->allocation.width / width);
 
   if (table->priv->columns != new_cols) {

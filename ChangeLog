@@ -1,5 +1,10 @@
 2007-03-22  Ross Burton  <ross@openedhand.com>
 
+	* taku-table.c:
+	Make the tiles slightly wider, so you get two rows on the Zaurus.
+
+2007-03-22  Ross Burton  <ross@openedhand.com>
+
 	* *.[ch]:
 	Add license block.
 	
