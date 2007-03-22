@@ -1,5 +1,10 @@
 2007-03-22  Jorn Baayen  <jorn@openedhand.com>
 
+	* taku-table.c: (container_remove):
+	Handle dummy removal.
+
+2007-03-22  Jorn Baayen  <jorn@openedhand.com>
+
 	* main.c: (next_page), (load_data_dir), (make_table):
 	Handle failed 'focus' events by switching between pages.
 

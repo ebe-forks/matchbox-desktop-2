@@ -168,8 +168,13 @@ container_remove (GtkContainer *container, GtkWidget *widget)
                               search,
                               NULL);
   iter = egg_sequence_iter_prev (iter);
-  if (egg_sequence_get (iter) != widget)
+  if (egg_sequence_iter_is_end (iter) || egg_sequence_get (iter) != widget) {
+    /* We have here a dummy, or something that is not contained */
+    (* GTK_CONTAINER_CLASS (taku_table_parent_class)->remove)
+                                                (container, widget);
+
     return;
+  }
 
   /* And then remove it */
   egg_sequence_remove (iter);
