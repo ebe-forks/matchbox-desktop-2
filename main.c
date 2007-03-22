@@ -12,6 +12,9 @@ static GHashTable *groups;
 static GtkNotebook *notebook;
 static GtkLabel *switcher_label;
 
+static gboolean
+popup_menu (GtkButton *button, gpointer user_data);
+
 static void
 switch_page_cb (GtkNotebook *notebook,
                 GtkNotebookPage *nb_page, int page_num, gpointer user_data)
@@ -98,26 +101,30 @@ popdown_menu (GtkMenuShell *menu_shell, gpointer user_data)
   GtkToggleButton *button = GTK_TOGGLE_BUTTON (user_data);
 
   /* Button up */
+  g_signal_handlers_block_by_func (button, popup_menu, NULL);
   gtk_toggle_button_set_active (button, FALSE);
+  g_signal_handlers_unblock_by_func (button, popup_menu, NULL);
 
   /* Destroy menu */
   gtk_widget_destroy (GTK_WIDGET (menu_shell));
 }
 
 static gboolean
-popup_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
+popup_menu (GtkButton *button, gpointer user_data)
 {
   GtkWidget *menu;
   GList *children, *l;
 
   /* Button down */
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
+  g_signal_handlers_block_by_func (button, popup_menu, NULL);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+  g_signal_handlers_unblock_by_func (button, popup_menu, NULL);
 
   /* Create menu */
   menu = gtk_menu_new ();
-  gtk_widget_set_size_request (menu, widget->allocation.width, -1);
+  gtk_widget_set_size_request (menu, GTK_WIDGET (button)->allocation.width, -1);
 
-  g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), widget);
+  g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), button);
 
   children = gtk_container_get_children (GTK_CONTAINER (notebook));
   for (l = children; l; l = l->next) {
@@ -141,9 +148,9 @@ popup_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
   gtk_menu_popup (GTK_MENU (menu),
                   NULL, NULL,
                   position_menu,
-                  widget,
-                  event->button,
-                  gdk_event_get_time ((GdkEvent *) event));
+                  button,
+                  1,
+                  GDK_CURRENT_TIME);
 
   return TRUE;
 }
@@ -310,7 +317,7 @@ main (int argc, char **argv)
 
   button = gtk_toggle_button_new ();
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "button-press-event", G_CALLBACK (popup_menu), NULL);
+  g_signal_connect (button, "clicked", G_CALLBACK (popup_menu), NULL);
   gtk_widget_show (button);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
 

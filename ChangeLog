@@ -1,3 +1,8 @@
+2007-03-22  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (popdown_menu), (popup_menu), (main):
+	Popup menu in response to 'clicked' signal.
+
 2007-03-20  Jorn Baayen  <jorn@openedhand.com>
 
 	* taku-table.c: (reflow), (calculate_columns):
