@@ -162,7 +162,7 @@ reflow (TakuTable *table)
   int i;
 
   /* Only reflow when necessary */
-  if (!GTK_WIDGET_VISIBLE (table))
+  if (!GTK_WIDGET_REALIZED (table))
     return;
 
   /* Remove dummies */
@@ -270,7 +270,7 @@ calculate_columns (GtkWidget *widget)
 
   /* If we are currently reflowing the tiles, or the final allocation hasn't
      been decided yet, return */
-  if (!GTK_WIDGET_VISIBLE (widget) || table->priv->reflowing ||
+  if (!GTK_WIDGET_REALIZED (widget) || table->priv->reflowing ||
       widget->allocation.width <= 1)
     return;
 
@@ -297,6 +297,8 @@ taku_table_realize (GtkWidget *widget)
   (* GTK_WIDGET_CLASS (taku_table_parent_class)->realize) (widget);
 
   gtk_im_context_set_client_window (self->priv->im_context, widget->window);
+
+  calculate_columns (widget);
 }
 
 static void
@@ -435,7 +437,7 @@ taku_table_init (TakuTable *self)
   gtk_table_set_homogeneous (GTK_TABLE (self), TRUE);
   gtk_table_set_row_spacings (GTK_TABLE (self), 6);
   gtk_table_set_col_spacings (GTK_TABLE (self), 6);
-  self->priv->columns = 2;
+  self->priv->columns = 0;
 
   self->priv->reflowing = FALSE;
 

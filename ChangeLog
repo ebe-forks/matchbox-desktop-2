@@ -1,5 +1,14 @@
 2007-03-26  Jorn Baayen  <jorn@openedhand.com>
 
+	* taku-table.c: (reflow), (calculate_columns),
+	(taku_table_realize), (taku_table_init):
+	Default 'columns' to 0 in order to trigger an initial reflow when
+	room is allocated for 2 columns.
+
+	Also add a call to calculate_columns() in realize().
+
+2007-03-26  Jorn Baayen  <jorn@openedhand.com>
+
 	* main.c: (switch_page_cb):
 	Add a hack to stop GtkNotebook from focusing the page when
 	switching.
