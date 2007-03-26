@@ -106,7 +106,6 @@ im_context_commit_cb (GtkIMContext *context,
 
     if (strncmp (norm_str, norm_text, strlen (norm_str)) == 0) {
       g_free (norm_text);
-      g_print ("are we grabbing Da Focus? :)\n");
       gtk_widget_grab_focus (GTK_WIDGET (tile));
       break;
     }
