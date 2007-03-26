@@ -44,6 +44,9 @@ switch_page_cb (GtkNotebook *notebook,
 
   text = gtk_notebook_get_tab_label_text (notebook, page);
   gtk_label_set_text (switcher_label, text);
+
+  /* Hack hack hack - do not focus the notebook child */
+  notebook->child_has_focus = FALSE;
 }
 
 static void

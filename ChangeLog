@@ -1,3 +1,19 @@
+2007-03-26  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (switch_page_cb):
+	Add a hack to stop GtkNotebook from focusing the page when
+	switching.
+
+	* taku-table.c: (on_tile_focus), (reflow_foreach), (reflow),
+	(container_add), (container_remove), (calculate_columns),
+	(taku_table_realize), (taku_table_unrealize),
+	(taku_table_size_allocate), (taku_table_style_set),
+	(taku_table_focus_in_event), (taku_table_focus_out_event),
+	(taku_table_key_press_event), (taku_table_get_property),
+	(taku_table_set_property), (taku_table_finalize),
+	(taku_table_class_init), (taku_table_init):
+	Add basic alpha keynav.
+
 2007-03-22  Ross Burton  <ross@openedhand.com>
 
 	* taku-table.c:

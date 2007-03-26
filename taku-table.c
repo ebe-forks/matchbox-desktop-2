@@ -17,6 +17,7 @@
  */
 
 #include <gtk/gtk.h>
+#include <string.h>
 #include "eggsequence.h"
 #include "taku-table.h"
 #include "taku-icon-tile.h"
@@ -29,11 +30,94 @@ G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
 struct _TakuTablePrivate
 {
   int columns;
+
   int x, y;
   gboolean reflowing;
+
   EggSequence *seq;
+
   GList *dummies;
+
+  GtkIMContext *im_context;
 };
+
+/* Compare two tiles lexographically */
+static int
+compare_tiles (gconstpointer a,
+               gconstpointer b,
+               gpointer      user_data)
+{
+  TakuIconTile *ta, *tb;
+
+  ta = TAKU_ICON_TILE (a);
+  tb = TAKU_ICON_TILE (b);
+
+  return g_utf8_collate (taku_icon_tile_get_primary (ta),
+                         taku_icon_tile_get_primary (tb));
+}
+
+/* Normalize strings for case and representation insensitive comparison */
+static char *
+utf8_normalize_and_casefold (const char *str)
+{
+  char *norm = g_utf8_normalize (str, -1, G_NORMALIZE_ALL);
+  char *fold = g_utf8_casefold (str, -1);
+  g_free (norm);
+  return fold;
+}
+
+/* Process keypress: Focus next tile which's primary text starts with the
+ * entered character */
+static void
+im_context_commit_cb (GtkIMContext *context,
+                      const char   *str,
+                      gpointer      user_data)
+{
+  TakuTable *table = TAKU_TABLE (user_data);
+  EggSequenceIter *begin_iter, *iter;
+  GtkWidget *toplevel, *focused;
+  char *norm_str;
+
+  norm_str = utf8_normalize_and_casefold (str);
+
+  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (table));
+  focused = gtk_window_get_focus (GTK_WINDOW (toplevel));
+  if (focused)
+    begin_iter = egg_sequence_search (table->priv->seq, 
+                                      focused, compare_tiles, NULL);
+  else
+    begin_iter = egg_sequence_get_begin_iter (table->priv->seq);
+
+  iter = begin_iter;
+  do {
+    TakuIconTile *tile;
+    const char *text;
+    char *norm_text;
+
+    if (egg_sequence_iter_is_end (iter)) {
+      iter = egg_sequence_get_begin_iter (table->priv->seq);
+      if (iter == begin_iter)
+        break;
+    }
+
+    tile = egg_sequence_get (iter);
+    text = taku_icon_tile_get_primary (tile);
+    norm_text = utf8_normalize_and_casefold (text);
+
+    if (strncmp (norm_str, norm_text, strlen (norm_str)) == 0) {
+      g_free (norm_text);
+      g_print ("are we grabbing Da Focus? :)\n");
+      gtk_widget_grab_focus (GTK_WIDGET (tile));
+      break;
+    }
+
+    g_free (norm_text);
+
+    iter = egg_sequence_iter_next (iter);
+  } while (iter != begin_iter);
+
+  g_free (norm_str);
+}
 
 static gboolean
 on_tile_focus (GtkWidget *widget, GdkEventFocus *event, gpointer user_data)
@@ -125,20 +209,6 @@ reflow (TakuTable *table)
   gtk_table_resize (GTK_TABLE (table), 1, 1);
 }
 
-static int
-sort (gconstpointer a,
-      gconstpointer b,
-      gpointer      user_data)
-{
-  TakuIconTile *ta, *tb;
-
-  ta = TAKU_ICON_TILE (a);
-  tb = TAKU_ICON_TILE (b);
-
-  return g_utf8_collate (taku_icon_tile_get_primary (ta),
-                         taku_icon_tile_get_primary (tb));
-}
-
 /*
  * Implementation of gtk_container_add, so that applications can just call that
  * and this class manages the position.
@@ -151,7 +221,7 @@ container_add (GtkContainer *container, GtkWidget *widget)
   g_return_if_fail (self);
   g_return_if_fail (TAKU_IS_ICON_TILE (widget));
 
-  egg_sequence_insert_sorted (self->priv->seq, widget, sort, NULL);
+  egg_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
 
   gtk_table_attach (GTK_TABLE (container), widget, 0, 1, 0, 1,
                     GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
@@ -159,17 +229,6 @@ container_add (GtkContainer *container, GtkWidget *widget)
   reflow (self);
 
   g_signal_connect (widget, "focus-in-event", G_CALLBACK (on_tile_focus), self);
-}
-
-static int
-search (gconstpointer a, gconstpointer b, gpointer user_data)
-{
-  if (a < b)
-    return -1;
-  else if (a > b)
-    return 1;
-  else
-    return 0;
 }
 
 static void
@@ -181,10 +240,10 @@ container_remove (GtkContainer *container, GtkWidget *widget)
   g_return_if_fail (self);
 
   /* Find the appropriate iter first */
+  /* XXX This search may not return the right tile, if two tiles have
+   * the same primary text */
   iter = egg_sequence_search (self->priv->seq,
-                              widget,
-                              search,
-                              NULL);
+                              widget, compare_tiles, NULL);
   iter = egg_sequence_iter_prev (iter);
   if (egg_sequence_iter_is_end (iter) || egg_sequence_get (iter) != widget) {
     /* We have here a dummy, or something that is not contained */
@@ -232,6 +291,26 @@ calculate_columns (GtkWidget *widget)
 }
 
 static void
+taku_table_realize (GtkWidget *widget)
+{
+  TakuTable *self = TAKU_TABLE (widget);
+
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->realize) (widget);
+
+  gtk_im_context_set_client_window (self->priv->im_context, widget->window);
+}
+
+static void
+taku_table_unrealize (GtkWidget *widget)
+{
+  TakuTable *self = TAKU_TABLE (widget);
+
+  gtk_im_context_set_client_window (self->priv->im_context, NULL);
+
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->unrealize) (widget);
+}
+
+static void
 taku_table_size_allocate (GtkWidget     *widget,
                           GtkAllocation *allocation)
 {
@@ -253,6 +332,41 @@ taku_table_style_set (GtkWidget *widget,
   calculate_columns (widget);
 }
 
+static int
+taku_table_focus_in_event (GtkWidget *widget, GdkEventFocus *event)
+{
+  TakuTable *self = TAKU_TABLE (widget);
+
+  gtk_im_context_focus_in (self->priv->im_context);
+
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_in_event) (widget, event);
+
+  return FALSE;
+}
+
+static int
+taku_table_focus_out_event (GtkWidget *widget, GdkEventFocus *event)
+{
+  TakuTable *self = TAKU_TABLE (widget);
+
+  gtk_im_context_focus_out (self->priv->im_context);
+
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_out_event) (widget, event);
+
+  return FALSE;
+}
+
+static gboolean
+taku_table_key_press_event (GtkWidget   *widget,
+                            GdkEventKey *event)
+{
+  TakuTable *table = TAKU_TABLE (widget);
+
+  if (gtk_im_context_filter_keypress (table->priv->im_context, event))
+    return TRUE;
+
+  return (* GTK_WIDGET_CLASS (taku_table_parent_class)->key_press_event) (widget, event);
+}
 
 static void
 taku_table_get_property (GObject *object, guint property_id,
@@ -283,6 +397,8 @@ taku_table_finalize (GObject *object)
 
   g_list_free (table->priv->dummies);
 
+  g_object_unref (table->priv->im_context);
+
   G_OBJECT_CLASS (taku_table_parent_class)->finalize (object);
 }
 
@@ -299,8 +415,13 @@ taku_table_class_init (TakuTableClass *klass)
   object_class->set_property = taku_table_set_property;
   object_class->finalize     = taku_table_finalize;
   
-  widget_class->size_allocate = taku_table_size_allocate;
-  widget_class->style_set = taku_table_style_set;
+  widget_class->realize         = taku_table_realize;
+  widget_class->unrealize       = taku_table_unrealize;
+  widget_class->size_allocate   = taku_table_size_allocate;
+  widget_class->style_set       = taku_table_style_set;
+  widget_class->focus_in_event  = taku_table_focus_in_event;
+  widget_class->focus_out_event = taku_table_focus_out_event;
+  widget_class->key_press_event = taku_table_key_press_event;
   
   container_class->add    = container_add;
   container_class->remove = container_remove;
@@ -322,6 +443,10 @@ taku_table_init (TakuTable *self)
   self->priv->seq = egg_sequence_new (NULL);
 
   self->priv->dummies = NULL;
+
+  self->priv->im_context = gtk_im_multicontext_new ();
+  g_signal_connect (self->priv->im_context, "commit",
+                    G_CALLBACK (im_context_commit_cb), self);
 }
 
 GtkWidget *
