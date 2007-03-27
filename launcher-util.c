@@ -24,6 +24,7 @@
 #include <gtk/gtkwidget.h>
 #include <gdk/gdkx.h>
 #include "launcher-util.h"
+#include "xutil.h"
 
 #ifdef USE_LIBSN
 #define SN_API_NOT_YET_FROZEN 1
@@ -199,6 +200,8 @@ launcher_parse_desktop_file (const char *filename, GError **error)
 
   data->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
 
+  data->single_instance = get_desktop_boolean (key_file, "SingleInstance", FALSE);
+
   g_key_file_free (key_file);
 
   return data;
@@ -278,6 +281,20 @@ launcher_start (GtkWidget *widget, LauncherData *data)
 #ifdef USE_LIBSN
   SnLauncherContext *context;
 #endif
+
+  if (data->single_instance) {
+    Window win_found;
+
+    if (mb_single_instance_is_starting (data->argv[0]))
+      return;
+
+    win_found = mb_single_instance_get_window (data->argv[0]);
+    if (win_found != None) {
+      x_window_activate (win_found);
+
+      return;
+    }
+  }
   
 #ifdef USE_LIBSN
   context = NULL;

@@ -16,6 +16,14 @@
  * Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <X11/Xlib.h>
+
 char * x_strerror (int code);
 
 gboolean x_get_workarea (int *x, int *y, int *w, int *h);
+
+void x_window_activate (Window win);
+
+Window mb_single_instance_get_window (const char *bin_name);
+
+gboolean mb_single_instance_is_starting (const char *bin_name);

@@ -20,6 +20,8 @@
 #include <X11/Xatom.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
+#include <string.h>
+#include <stdlib.h>
 
 char *
 x_strerror (int code)
@@ -43,7 +45,7 @@ x_get_workarea (int *x, int *y, int *w, int *h)
   unsigned long items_read, items_left;
   long *coords;
 
-  Atom workarea_atom = XInternAtom (GDK_DISPLAY (), "_NET_WORKAREA", False);
+  Atom workarea_atom = gdk_x11_get_xatom_by_name ("_NET_WORKAREA");
   
   gdk_error_trap_push ();
   result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (),
@@ -66,5 +68,119 @@ x_get_workarea (int *x, int *y, int *w, int *h)
     XFree(coords);
     return TRUE;
   }
+  return FALSE;
+}
+
+void
+x_window_activate (Window win)
+{
+  Atom atom_net_active = gdk_x11_get_xatom_by_name ("_NET_ACTIVE_WINDOW");
+  XEvent ev;
+
+  memset (&ev, 0, sizeof ev);
+  ev.xclient.type = ClientMessage;
+  ev.xclient.window = win;
+  ev.xclient.message_type = atom_net_active;
+  ev.xclient.format = 32;
+
+  ev.xclient.data.l[0] = 0; 
+
+  XSendEvent (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+	      False, SubstructureRedirectMask, &ev);
+}
+
+#define RETURN_NONE_IF_NULL(p) if ((p) == '\0') return None; 
+
+Window
+mb_single_instance_get_window (const char *bin_name)
+{
+  Atom atom_exec_map = gdk_x11_get_xatom_by_name ("_MB_CLIENT_EXEC_MAP");
+
+  Atom type;
+  int format;
+  unsigned char *data = NULL;
+  unsigned long n_items, bytes_after;
+  int result;
+
+  unsigned char *p, *key = NULL, *value = NULL;
+  Window win_found;
+
+  result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+			       atom_exec_map,
+			       0, 10000L,
+			       False, XA_STRING,
+			       &type, &format, &n_items,
+			       &bytes_after, (unsigned char **) &data);
+
+  if (result != Success || data == NULL || n_items == 0) {
+    if (data)
+      XFree (data);
+    return None;
+  }
+
+  p = data;
+
+  while (*p != '\0') { 
+    key = p;
+    while (*p != '=' && *p != '\0') p++;
+
+    RETURN_NONE_IF_NULL(*p);
+
+    *p = '\0'; p++;
+
+    RETURN_NONE_IF_NULL(*p);
+
+    value = p;
+
+    while (*p != '|' && *p != '\0') p++;
+
+    RETURN_NONE_IF_NULL(*p);
+
+    *p = '\0';      
+
+    if (!strcmp ((char*) key, (char*) bin_name)) {
+      win_found = atoi ((char*) value); /* XXX should check window ID 
+				           actually exists */
+      XFree (data);
+      return ((win_found > 0) ? win_found : None);
+    }
+
+    p++;
+  }
+  XFree (data);
+
+  return None;
+}
+
+gboolean
+mb_single_instance_is_starting (const char *bin_name)
+{
+  Atom atom_exec_map = gdk_x11_get_xatom_by_name ("_MB_CLIENT_STARTUP_LIST");
+
+  Atom type;
+  int format;
+  unsigned char *data = NULL;
+  unsigned long n_items, bytes_after;
+  int result;
+
+  result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+			       atom_exec_map,
+			       0, 10000L,
+			       False, XA_STRING,
+			       &type, &format, &n_items,
+			       &bytes_after, (unsigned char **) &data);
+
+  if (result != Success || data == NULL) {
+    if (data)
+      XFree (data);
+    return FALSE;
+  }
+
+  if (strstr ((char*) data, (char*) bin_name) != NULL) {
+    XFree (data);
+    return TRUE;
+  }
+
+  XFree (data);
   return FALSE;
 }

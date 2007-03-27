@@ -29,6 +29,7 @@ typedef struct {
   /*< private >*/
   char **argv; /* argv to execute when starting this program */
   gboolean use_sn;
+  gboolean single_instance;
 } LauncherData;
 
 LauncherData *launcher_parse_desktop_file (const char *filename, GError **error);
