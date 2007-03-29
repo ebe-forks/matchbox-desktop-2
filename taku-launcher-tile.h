@@ -62,7 +62,7 @@ GtkWidget* taku_launcher_tile_new (void);
 
 GtkWidget * taku_launcher_tile_for_desktop_file (const char *filename);
 
-const char * taku_launcher_tile_get_categories (TakuLauncherTile *tile);
+const char ** taku_launcher_tile_get_categories (TakuLauncherTile *tile);
 
 G_END_DECLS
 

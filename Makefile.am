@@ -1,7 +1,9 @@
 bin_PROGRAMS = matchbox-desktop
 
+PKGDATADIR = $(datadir)/matchbox
+
 matchbox_desktop_CPPFLAGS = \
-	$(GTK_CFLAGS) $(SN_CFLAGS)
+	$(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
 matchbox_desktop_CFLAGS = \
 	-Wall
 matchbox_desktop_LDADD = \

@@ -1,3 +1,14 @@
+2007-03-29  Jorn Baayen  <jorn@openedhand.com>
+
+	* Makefile.am:
+	* launcher-util.c: (launcher_parse_desktop_file):
+	* launcher-util.h:
+	* main.c: (switch_to_page), (popup_menu), (load_vfolder_dir),
+	(load_data_dir), (remove_empty_tables), (main):
+	* taku-launcher-tile.c: (taku_launcher_tile_for_desktop_file):
+	* taku-launcher-tile.h:
+	Use matchbox vfolders.
+
 2007-03-27  Jorn Baayen  <jorn@openedhand.com>
 
 	* launcher-util.c: (launcher_parse_desktop_file), (launcher_start):

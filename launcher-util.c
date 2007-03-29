@@ -163,7 +163,7 @@ launcher_parse_desktop_file (const char *filename, GError **error)
   GError *err = NULL;
   LauncherData *data;
   GKeyFile *key_file;
-  char *exec;
+  char *exec, *categories;
 
   key_file = g_key_file_new ();
 
@@ -196,7 +196,11 @@ launcher_parse_desktop_file (const char *filename, GError **error)
 
   data->icon = get_desktop_string (key_file, "Icon");
 
-  data->categories = get_desktop_string (key_file, "Categories");
+  categories = get_desktop_string (key_file, "Categories");
+  if (categories == NULL)
+    categories = g_strdup ("");
+  data->categories = g_strsplit (categories, ";", -1);
+  g_free (categories);
 
   data->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
 

@@ -175,11 +175,11 @@ taku_launcher_tile_for_desktop_file (const char *filename) {
   return (GtkWidget*) tile;
 }
 
-const char *
+const char **
 taku_launcher_tile_get_categories (TakuLauncherTile *tile)
 {
   /* TODO: a bit crap */
   g_return_val_if_fail (TAKU_IS_LAUNCHER_TILE (tile), NULL);
   
-  return tile->priv->data->categories;
+  return (const char **) tile->priv->data->categories;
 }

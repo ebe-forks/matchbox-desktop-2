@@ -114,6 +114,7 @@ switch_to_page (GtkMenuItem *menu_item,
     
     i++;
   }
+  g_list_free (children);
 
   /* Switch to page */
   gtk_notebook_set_current_page (notebook, i);
@@ -181,6 +182,7 @@ popup_menu (GtkButton *button, gpointer user_data)
     gtk_widget_show (label);
     gtk_container_add (GTK_CONTAINER (menu_item), label);
   }
+  g_list_free (children);
 
   /* Popup menu */
   gtk_menu_popup (GTK_MENU (menu),
@@ -191,6 +193,93 @@ popup_menu (GtkButton *button, gpointer user_data)
                   GDK_CURRENT_TIME);
 
   return TRUE;
+}
+
+static void
+make_table (const char *id, const char *label)
+{
+  GtkWidget *scrolled, *viewport, *table;
+
+  g_assert (id);
+
+  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+  viewport = gtk_viewport_new (NULL, NULL);
+  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
+                                GTK_SHADOW_NONE);
+  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
+
+  table = taku_table_new ();
+  g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
+  gtk_container_add (GTK_CONTAINER (viewport), table);
+  
+  gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
+                            scrolled, gtk_label_new (label));
+  
+  g_hash_table_insert (groups, g_strdup (id), table);
+}
+
+/*
+ * Load all .directory files from @vfolderdir, and add them as tables.
+ */
+static void
+load_vfolder_dir (const char *vfolderdir)
+{
+  GError *error = NULL;
+  GDir *dir;
+  const char *name;
+
+  dir = g_dir_open (vfolderdir, 0, &error);
+  if (error) {
+    g_warning ("Cannot read %s: %s", vfolderdir, error->message);
+    g_error_free (error);
+    return;
+  }
+
+  while ((name = g_dir_read_name (dir)) != NULL) {
+    char *filename, *match = NULL, *local_name = NULL;
+    GKeyFile *key_file;
+  
+    if (! g_str_has_suffix (name, ".directory"))
+      continue;
+
+    filename = g_build_filename (vfolderdir, name, NULL);
+
+    key_file = g_key_file_new ();
+    g_key_file_load_from_file (key_file, filename, G_KEY_FILE_NONE, &error);
+    if (error) {
+      g_warning ("Cannot read %s: %s", filename, error->message);
+      g_error_free (error);
+      error = NULL;
+
+      goto done;
+    }
+
+    match = g_key_file_get_string (key_file, "Desktop Entry", "Match", NULL);
+    if (match == NULL)
+      goto done;
+
+    local_name = g_key_file_get_locale_string (key_file, "Desktop Entry",
+                                               "Name", NULL, NULL);
+    if (local_name == NULL) {
+      g_warning ("Directory file %s does not contain a \"Name\" field",
+                 filename);
+      goto done;
+    }
+
+    make_table (match, local_name);
+
+  done:
+    g_free (match);
+    g_free (local_name);
+
+    g_key_file_free (key_file);
+    g_free (filename);
+  }
+
+  g_dir_close (dir);
 }
 
 /*
@@ -224,8 +313,9 @@ load_data_dir (const char *datadir)
 
   while ((name = g_dir_read_name (dir)) != NULL) {
     char *filename;
-    const char *categories;
-    GtkWidget *table, *tile;
+    const char **categories;
+    GtkWidget *table = NULL, *tile;
+    int i;
   
     if (! g_str_has_suffix (name, ".desktop"))
       continue;
@@ -239,20 +329,14 @@ load_data_dir (const char *datadir)
       goto done;
 
     categories = taku_launcher_tile_get_categories (TAKU_LAUNCHER_TILE (tile));
-    if (!categories) {
-      categories = "";
+    for (i = 0; categories[i] != NULL; i++) {
+      table = g_hash_table_lookup (groups, categories[i]);
+      if (table)
+        break;
     }
 
-    /* TODO: replace with dynamic menu system */ 
-    if (strstr (categories, ";Office;")) {
-      table = g_hash_table_lookup (groups, "office");
-    } else if (strstr (categories, ";Settings;")) {
-      table = g_hash_table_lookup (groups, "settings");
-    } else if (strstr (categories, "Game;")) {
-      table = g_hash_table_lookup (groups, "games");
-    } else {
-      table = g_hash_table_lookup (groups, "other");
-    }
+    if (!table)
+      table = g_hash_table_lookup (groups, "fallback");
 
     if (!table) {
       g_warning ("Cannot find table");
@@ -270,29 +354,29 @@ load_data_dir (const char *datadir)
   g_dir_close (dir);
 }
 
-static void
-make_table (const char *id, const char *label)
+/* Returns TRUE if a table is empty */
+static gboolean
+remove_empty_tables (gpointer key, gpointer value, gpointer user_data)
 {
-  GtkWidget *scrolled, *viewport, *table;
-
-  g_assert (id);
-
-  scrolled = gtk_scrolled_window_new (NULL, NULL);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
-                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
-  viewport = gtk_viewport_new (NULL, NULL);
-  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
-                                GTK_SHADOW_NONE);
-  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
-
-  table = taku_table_new ();
-  g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
-  gtk_container_add (GTK_CONTAINER (viewport), table);
+  GList *children;
+  gboolean empty;
   
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, gtk_label_new (label));
-  
-  g_hash_table_insert (groups, g_strdup (id), table);
+  children = gtk_container_get_children (GTK_CONTAINER (value));
+  empty = (g_list_length (children) == 0);
+  g_list_free (children);
+
+  if (empty) {
+    GtkWidget *notebook_child;
+    int page_num;
+
+    /* The table is contained in a viewport and a scrolled window */
+    notebook_child = GTK_WIDGET (value)->parent->parent;
+    page_num = gtk_notebook_page_num (notebook, notebook_child);
+
+    gtk_notebook_remove_page (notebook, page_num);
+  }
+
+  return empty;
 }
 
 int
@@ -300,6 +384,7 @@ main (int argc, char **argv)
 {
   GtkWidget *window, *box, *hbox, *button, *arrow;
   const char * const *dirs;
+  char *vfolder_dir;
 #ifndef STANDALONE
   /* Sane defaults in case something terrible happens in x_get_workarea() */
   int x = 0, y = 0;
@@ -313,7 +398,7 @@ main (int argc, char **argv)
      theme. */
   gtk_icon_size_register ("TakuIcon", 64, 64);
 
-  groups = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+  groups = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
@@ -381,12 +466,15 @@ main (int argc, char **argv)
   g_signal_connect (notebook, "switch-page", G_CALLBACK (switch_page_cb), NULL);
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
 
-  make_table ("office", _("Office"));
-  make_table ("games", _("Games"));
-  make_table ("other", _("Other"));
-  make_table ("settings", _("Settings"));
-  gtk_notebook_set_current_page (notebook, 0);
-  
+  /* Load matchbox vfolders */
+  vfolder_dir = g_build_filename (g_get_home_dir (),
+                                  ".matchbox", "vfolders", NULL);
+  if (g_file_test (vfolder_dir, G_FILE_TEST_EXISTS))
+    load_vfolder_dir (vfolder_dir);
+  else
+    load_vfolder_dir (PKGDATADIR "/vfolders");
+  g_free (vfolder_dir);
+
   /* Load all desktop files in the system data directories, and the user data
      directory. TODO: would it be best to do this in an idle handler and
      populate the desktop incrementally? */
@@ -394,6 +482,12 @@ main (int argc, char **argv)
     load_data_dir (*dirs);
   }
   load_data_dir (g_get_user_data_dir ());
+
+  /* Remove empty tables */
+  g_hash_table_foreach_remove (groups, remove_empty_tables, NULL);
+
+  /* Activate first page */
+  gtk_notebook_set_current_page (notebook, 0);
 
   gtk_widget_show_all (GTK_WIDGET (notebook));
 

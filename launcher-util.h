@@ -25,7 +25,7 @@ typedef struct {
   char *name; /* Human-readable name */
   char *description; /* Description */
   char *icon; /* Icon name (can be NULL) */
-  char *categories; /* Categories */
+  char **categories; /* Categories */
   /*< private >*/
   char **argv; /* argv to execute when starting this program */
   gboolean use_sn;
