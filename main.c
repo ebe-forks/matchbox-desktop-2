@@ -20,6 +20,7 @@
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include <ctype.h>
 #include "taku-table.h"
 #include "taku-icon-tile.h"
 #include "taku-launcher-tile.h"
@@ -228,23 +229,27 @@ static void
 load_vfolder_dir (const char *vfolderdir)
 {
   GError *error = NULL;
-  GDir *dir;
-  const char *name;
+  FILE *fp;
+  char name[NAME_MAX], *filename;
 
-  dir = g_dir_open (vfolderdir, 0, &error);
-  if (error) {
-    g_warning ("Cannot read %s: %s", vfolderdir, error->message);
-    g_error_free (error);
+  filename = g_build_filename (vfolderdir, "Root.order", NULL);
+  fp = fopen (filename, "r");
+  if (fp == NULL) {
+    g_warning ("Cannot read %s", filename);
+    g_free (filename);
     return;
   }
+  g_free (filename);
 
-  while ((name = g_dir_read_name (dir)) != NULL) {
-    char *filename, *match = NULL, *local_name = NULL;
+  while (fgets (name, NAME_MAX - 9, fp) != NULL) {
+    char *match = NULL, *local_name = NULL;
     GKeyFile *key_file;
-  
-    if (! g_str_has_suffix (name, ".directory"))
+
+    if (name[0] == '#' || isspace (name[0]))
       continue;
 
+    strcpy (name + strlen (name) - 1, ".directory");
+  
     filename = g_build_filename (vfolderdir, name, NULL);
 
     key_file = g_key_file_new ();
@@ -279,7 +284,7 @@ load_vfolder_dir (const char *vfolderdir)
     g_free (filename);
   }
 
-  g_dir_close (dir);
+  fclose (fp);
 }
 
 /*
