@@ -1,5 +1,12 @@
 2007-03-30  Jorn Baayen  <jorn@openedhand.com>
 
+	* main.c: (switch_page_cb), (popup_menu), (make_table),
+	(load_vfolder_dir):
+	Don't store tab labels in (unused) GtkLabel widgets, but rather
+	store them as GObject data.
+
+2007-03-30  Jorn Baayen  <jorn@openedhand.com>
+
 	* main.c: (load_vfolder_dir):
 	Read order from Root.order.
 

@@ -43,7 +43,7 @@ switch_page_cb (GtkNotebook *notebook,
 
   page = gtk_notebook_get_nth_page (notebook, page_num);
 
-  text = gtk_notebook_get_tab_label_text (notebook, page);
+  text = g_object_get_data (G_OBJECT (page), "label");
   gtk_label_set_text (switcher_label, text);
 
   /* Hack hack hack - do not focus the notebook child */
@@ -171,7 +171,7 @@ popup_menu (GtkButton *button, gpointer user_data)
     const char *text;
     GtkWidget *menu_item, *label;
 
-    text = gtk_notebook_get_tab_label_text (notebook, l->data);
+    text = g_object_get_data (G_OBJECT (l->data), "label");
 
     menu_item = gtk_menu_item_new ();
     g_signal_connect (menu_item, "activate", G_CALLBACK (switch_to_page), NULL);
@@ -197,7 +197,7 @@ popup_menu (GtkButton *button, gpointer user_data)
 }
 
 static void
-make_table (const char *id, const char *label)
+make_table (char *id, char *label)
 {
   GtkWidget *scrolled, *viewport, *table;
 
@@ -216,10 +216,11 @@ make_table (const char *id, const char *label)
   g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
   gtk_container_add (GTK_CONTAINER (viewport), table);
   
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
-                            scrolled, gtk_label_new (label));
+  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, NULL);
+
+  g_object_set_data_full (G_OBJECT (scrolled), "label", label, g_free);
   
-  g_hash_table_insert (groups, g_strdup (id), table);
+  g_hash_table_insert (groups, id, table);
 }
 
 /*
@@ -271,15 +272,13 @@ load_vfolder_dir (const char *vfolderdir)
     if (local_name == NULL) {
       g_warning ("Directory file %s does not contain a \"Name\" field",
                  filename);
+      g_free (match);
       goto done;
     }
 
     make_table (match, local_name);
 
   done:
-    g_free (match);
-    g_free (local_name);
-
     g_key_file_free (key_file);
     g_free (filename);
   }
