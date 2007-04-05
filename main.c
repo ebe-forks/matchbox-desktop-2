@@ -30,6 +30,7 @@
 static GHashTable *groups;
 static GtkNotebook *notebook;
 static GtkLabel *switcher_label;
+static TakuTable *all_table;
 
 static gboolean
 popup_menu (GtkButton *button, gpointer user_data);
@@ -196,7 +197,7 @@ popup_menu (GtkButton *button, gpointer user_data)
   return TRUE;
 }
 
-static void
+static TakuTable *
 make_table (char *id, char *label)
 {
   GtkWidget *scrolled, *viewport, *table;
@@ -221,6 +222,8 @@ make_table (char *id, char *label)
   g_object_set_data_full (G_OBJECT (scrolled), "label", label, g_free);
   
   g_hash_table_insert (groups, id, table);
+
+  return TAKU_TABLE (table);
 }
 
 /*
@@ -350,6 +353,11 @@ load_data_dir (const char *datadir)
     gtk_widget_show (tile);
     gtk_container_add (GTK_CONTAINER (table), tile);
 
+    /* Add to 'All' group as well */
+    tile = taku_launcher_tile_for_desktop_file (filename);
+    gtk_container_add (GTK_CONTAINER (all_table), tile);
+    gtk_widget_show (tile);
+
   done:
     g_free (filename);
   }
@@ -469,6 +477,8 @@ main (int argc, char **argv)
   gtk_notebook_set_show_tabs (notebook, FALSE);
   g_signal_connect (notebook, "switch-page", G_CALLBACK (switch_page_cb), NULL);
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
+
+  all_table = make_table ("all", _("All"));
 
   /* Load matchbox vfolders */
   vfolder_dir = g_build_filename (g_get_home_dir (),

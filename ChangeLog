@@ -1,3 +1,12 @@
+2007-04-05  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (popup_menu), (make_table), (load_data_dir), (main):
+
+	Add 'All' group. 
+
+	To be replaced with a GtkRecent-using recent group as soon as
+	GTK+ 2.10 is available for use.
+
 2007-03-30  Jorn Baayen  <jorn@openedhand.com>
 
 	* main.c: (switch_page_cb), (popup_menu), (make_table),
