@@ -61,6 +61,10 @@ GType taku_table_get_type (void);
 
 GtkWidget* taku_table_new (void);
 
+void taku_table_set_category (TakuTable *table, const char *category);
+
+const char *taku_table_get_category (TakuTable *table);
+
 G_END_DECLS
 
 #endif /* _TAKU_TABLE */

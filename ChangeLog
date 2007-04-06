@@ -1,3 +1,18 @@
+2007-04-06  Jorn Baayen  <jorn@openedhand.com>
+
+	* taku-table.c: (reflow_foreach), (reflow), (container_add),
+	(taku_table_get_property), (taku_table_set_property),
+	(taku_table_finalize), (taku_table_class_init), (taku_table_init),
+	(taku_table_new):
+	* taku-table.h:
+	Add filtering functionality.
+
+	* main.c: (popup_menu), (load_vfolder_dir), (main):
+	Use table filtering instead of a notebook.
+
+	* launcher-util.c: (launcher_destroy):
+	Plug leak.
+
 2007-04-05  Jorn Baayen  <jorn@openedhand.com>
 
 	* main.c: (popup_menu), (make_table), (load_data_dir), (main):

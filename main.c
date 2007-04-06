@@ -26,61 +26,50 @@
 #include "taku-launcher-tile.h"
 #include "xutil.h"
 
-/* A hash of group ID (not display name) to a TakuTable. */
-static GHashTable *groups;
-static GtkNotebook *notebook;
+typedef struct {
+  char *match;
+  char *name;
+} Category;
+
 static GtkLabel *switcher_label;
-static TakuTable *all_table;
+static TakuTable *table;
+static GList *categories;
+static GList *current_category;
 
 static gboolean
 popup_menu (GtkButton *button, gpointer user_data);
 
 static void
-switch_page_cb (GtkNotebook *notebook,
-                GtkNotebookPage *nb_page, int page_num, gpointer user_data)
+set_category (GList *category_list_item)
 {
-  GtkWidget *page;
-  const char *text;
+  Category *category = category_list_item->data;
 
-  page = gtk_notebook_get_nth_page (notebook, page_num);
+  gtk_label_set_text (switcher_label, category->name);
+  taku_table_set_category (table, category->match);
 
-  text = g_object_get_data (G_OBJECT (page), "label");
-  gtk_label_set_text (switcher_label, text);
-
-  /* Hack hack hack - do not focus the notebook child */
-  notebook->child_has_focus = FALSE;
+  current_category = category_list_item;
 }
 
 static void
 prev_page (GtkButton *button, gpointer user_data)
 {
-  int page, last_page;
-
-  last_page = gtk_notebook_get_n_pages (notebook) - 1;
-
-  page = gtk_notebook_get_current_page (notebook);
-  if (page == 0)
-    page = last_page;
+  if (current_category->prev == NULL)
+    current_category = g_list_last (categories);
   else
-    page--;
+    current_category = current_category->prev;
 
-  gtk_notebook_set_current_page (notebook, page);
+  set_category (current_category);
 }
 
 static void
 next_page (GtkButton *button, gpointer user_data)
 {
-  int page, last_page;
-
-  last_page = gtk_notebook_get_n_pages (notebook) - 1;
-
-  page = gtk_notebook_get_current_page (notebook);
-  if (page == last_page)
-    page = 0;
+  if (current_category->next == NULL)
+    current_category = categories;
   else
-    page++;
+    current_category = current_category->next;
 
-  gtk_notebook_set_current_page (notebook, page);
+  set_category (current_category);
 }
 
 /* Handle failed focus events by switching between pages */
@@ -98,28 +87,6 @@ focus_cb (GtkWidget *widget, GtkDirectionType direction, gpointer user_data)
   }
 
   return FALSE;
-}
-
-static void
-switch_to_page (GtkMenuItem *menu_item,
-                gpointer     user_data)
-{
-  GtkWidget *widget = GTK_WIDGET (menu_item);
-  GList *children, *l;
-  int i = 0;
-
-  /* Find menu item index */
-  children = gtk_container_get_children (GTK_CONTAINER (widget->parent));
-  for (l = children; l; l = l->next) {
-    if (l->data == menu_item)
-      break;
-    
-    i++;
-  }
-  g_list_free (children);
-
-  /* Switch to page */
-  gtk_notebook_set_current_page (notebook, i);
 }
 
 static void
@@ -154,7 +121,7 @@ static gboolean
 popup_menu (GtkButton *button, gpointer user_data)
 {
   GtkWidget *menu;
-  GList *children, *l;
+  GList *l;
 
   /* Button down */
   g_signal_handlers_block_by_func (button, popup_menu, NULL);
@@ -167,24 +134,21 @@ popup_menu (GtkButton *button, gpointer user_data)
 
   g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), button);
 
-  children = gtk_container_get_children (GTK_CONTAINER (notebook));
-  for (l = children; l; l = l->next) {
-    const char *text;
+  for (l = categories; l; l = l->next) {
+    Category *category = l->data;
     GtkWidget *menu_item, *label;
 
-    text = g_object_get_data (G_OBJECT (l->data), "label");
-
     menu_item = gtk_menu_item_new ();
-    g_signal_connect (menu_item, "activate", G_CALLBACK (switch_to_page), NULL);
+    g_signal_connect_swapped (menu_item, "activate",
+                              G_CALLBACK (set_category), l);
     gtk_widget_show (menu_item);
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
 
-    label = gtk_label_new (text);
+    label = gtk_label_new (category->name);
     gtk_misc_set_alignment (GTK_MISC (label), 0.5, 0.0);
     gtk_widget_show (label);
     gtk_container_add (GTK_CONTAINER (menu_item), label);
   }
-  g_list_free (children);
 
   /* Popup menu */
   gtk_menu_popup (GTK_MENU (menu),
@@ -197,35 +161,6 @@ popup_menu (GtkButton *button, gpointer user_data)
   return TRUE;
 }
 
-static TakuTable *
-make_table (char *id, char *label)
-{
-  GtkWidget *scrolled, *viewport, *table;
-
-  g_assert (id);
-
-  scrolled = gtk_scrolled_window_new (NULL, NULL);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
-                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
-  viewport = gtk_viewport_new (NULL, NULL);
-  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
-                                GTK_SHADOW_NONE);
-  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
-
-  table = taku_table_new ();
-  g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
-  gtk_container_add (GTK_CONTAINER (viewport), table);
-  
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), scrolled, NULL);
-
-  g_object_set_data_full (G_OBJECT (scrolled), "label", label, g_free);
-  
-  g_hash_table_insert (groups, id, table);
-
-  return TAKU_TABLE (table);
-}
-
 /*
  * Load all .directory files from @vfolderdir, and add them as tables.
  */
@@ -235,6 +170,14 @@ load_vfolder_dir (const char *vfolderdir)
   GError *error = NULL;
   FILE *fp;
   char name[NAME_MAX], *filename;
+  Category *category;
+
+  category = g_slice_new (Category);
+  category->match = NULL;
+  category->name  = g_strdup (_("All"));
+
+  categories = NULL;
+  categories = g_list_prepend (categories, category);
 
   filename = g_build_filename (vfolderdir, "Root.order", NULL);
   fp = fopen (filename, "r");
@@ -279,7 +222,11 @@ load_vfolder_dir (const char *vfolderdir)
       goto done;
     }
 
-    make_table (match, local_name);
+    category = g_slice_new (Category);
+    category->match = match;
+    category->name  = local_name;
+
+    categories = g_list_append (categories, category);
 
   done:
     g_key_file_free (key_file);
@@ -320,9 +267,7 @@ load_data_dir (const char *datadir)
 
   while ((name = g_dir_read_name (dir)) != NULL) {
     char *filename;
-    const char **categories;
-    GtkWidget *table = NULL, *tile;
-    int i;
+    GtkWidget *tile;
   
     if (! g_str_has_suffix (name, ".desktop"))
       continue;
@@ -335,28 +280,7 @@ load_data_dir (const char *datadir)
     if (!tile)
       goto done;
 
-    categories = taku_launcher_tile_get_categories (TAKU_LAUNCHER_TILE (tile));
-    for (i = 0; categories[i] != NULL; i++) {
-      table = g_hash_table_lookup (groups, categories[i]);
-      if (table)
-        break;
-    }
-
-    if (!table)
-      table = g_hash_table_lookup (groups, "fallback");
-
-    if (!table) {
-      g_warning ("Cannot find table");
-      goto done;
-    }
-
-    gtk_widget_show (tile);
     gtk_container_add (GTK_CONTAINER (table), tile);
-
-    /* Add to 'All' group as well */
-    tile = taku_launcher_tile_for_desktop_file (filename);
-    gtk_container_add (GTK_CONTAINER (all_table), tile);
-    gtk_widget_show (tile);
 
   done:
     g_free (filename);
@@ -366,35 +290,10 @@ load_data_dir (const char *datadir)
   g_dir_close (dir);
 }
 
-/* Returns TRUE if a table is empty */
-static gboolean
-remove_empty_tables (gpointer key, gpointer value, gpointer user_data)
-{
-  GList *children;
-  gboolean empty;
-  
-  children = gtk_container_get_children (GTK_CONTAINER (value));
-  empty = (g_list_length (children) == 0);
-  g_list_free (children);
-
-  if (empty) {
-    GtkWidget *notebook_child;
-    int page_num;
-
-    /* The table is contained in a viewport and a scrolled window */
-    notebook_child = GTK_WIDGET (value)->parent->parent;
-    page_num = gtk_notebook_page_num (notebook, notebook_child);
-
-    gtk_notebook_remove_page (notebook, page_num);
-  }
-
-  return empty;
-}
-
 int
 main (int argc, char **argv)
 {
-  GtkWidget *window, *box, *hbox, *button, *arrow;
+  GtkWidget *window, *box, *hbox, *button, *arrow, *scrolled, *viewport;
   const char * const *dirs;
   char *vfolder_dir;
 #ifndef STANDALONE
@@ -410,8 +309,6 @@ main (int argc, char **argv)
      theme. */
   gtk_icon_size_register ("TakuIcon", 64, 64);
 
-  groups = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-  
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
   gtk_widget_set_name (window, "TakuWindow");
@@ -472,13 +369,22 @@ main (int argc, char **argv)
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (button), arrow);
 
-  /* Notebook */
-  notebook = GTK_NOTEBOOK (gtk_notebook_new ());
-  gtk_notebook_set_show_tabs (notebook, FALSE);
-  g_signal_connect (notebook, "switch-page", G_CALLBACK (switch_page_cb), NULL);
-  gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (notebook), TRUE, TRUE, 0);
+  /* Table area */
+  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+  gtk_widget_show (scrolled);
+  gtk_box_pack_start (GTK_BOX (box), scrolled, TRUE, TRUE, 0);
 
-  all_table = make_table ("all", _("All"));
+  viewport = gtk_viewport_new (NULL, NULL);
+  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
+                                GTK_SHADOW_NONE);
+  gtk_widget_show (viewport);
+  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
+
+  table = TAKU_TABLE (taku_table_new ());
+  g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
+  gtk_container_add (GTK_CONTAINER (viewport), GTK_WIDGET (table));
 
   /* Load matchbox vfolders */
   vfolder_dir = g_build_filename (g_get_home_dir (),
@@ -489,6 +395,9 @@ main (int argc, char **argv)
     load_vfolder_dir (PKGDATADIR "/vfolders");
   g_free (vfolder_dir);
 
+  /* Show the 'All' category */
+  set_category (categories);
+
   /* Load all desktop files in the system data directories, and the user data
      directory. TODO: would it be best to do this in an idle handler and
      populate the desktop incrementally? */
@@ -497,15 +406,22 @@ main (int argc, char **argv)
   }
   load_data_dir (g_get_user_data_dir ());
 
-  /* Remove empty tables */
-  g_hash_table_foreach_remove (groups, remove_empty_tables, NULL);
+  /* Go! */
+  gtk_widget_show (GTK_WIDGET (table));
 
-  /* Activate first page */
-  gtk_notebook_set_current_page (notebook, 0);
+  gtk_main ();
 
-  gtk_widget_show_all (GTK_WIDGET (notebook));
+  /* Cleanup */
+  while (categories) {
+    Category *category = categories->data;
 
-  gtk_main();
+    g_free (category->match);
+    g_free (category->name);
+
+    g_slice_free (Category, category);
+
+    categories = g_list_delete_link (categories, categories);
+  }
 
   return 0;
 }

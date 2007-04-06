@@ -355,7 +355,7 @@ launcher_destroy (LauncherData *data)
   g_free (data->name);
   g_free (data->description);
   g_free (data->icon);
-  g_free (data->categories);
+  g_strfreev (data->categories);
   g_strfreev (data->argv);
   g_slice_free (LauncherData, data);
 }

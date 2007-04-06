@@ -21,6 +21,7 @@
 #include "eggsequence.h"
 #include "taku-table.h"
 #include "taku-icon-tile.h"
+#include "taku-launcher-tile.h"
 
 G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
 
@@ -35,6 +36,8 @@ struct _TakuTablePrivate
   gboolean reflowing;
 
   EggSequence *seq;
+
+  char *category;
 
   GList *dummies;
 
@@ -144,6 +147,27 @@ reflow_foreach (gpointer widget, gpointer user_data)
   TakuTable *table = TAKU_TABLE (user_data);
   GtkContainer *container = GTK_CONTAINER (user_data);
 
+  if (table->priv->category != NULL) {
+    const char **categories =
+      taku_launcher_tile_get_categories (TAKU_LAUNCHER_TILE (widget));
+    gboolean found = FALSE;
+    int i;
+
+    for (i = 0; categories[i] != NULL; i++) {
+      if (!strcmp (categories[i], table->priv->category)) {
+        found = TRUE;
+        break;
+      }
+    }
+
+    if (!found) {
+      gtk_widget_hide (widget);
+      return;
+    }
+  }
+
+  gtk_widget_show (widget);
+
   gtk_container_child_set (container, GTK_WIDGET (widget),
                            "left-attach", table->priv->x,
                            "right-attach", table->priv->x + 1,
@@ -218,7 +242,7 @@ container_add (GtkContainer *container, GtkWidget *widget)
   TakuTable *self = TAKU_TABLE (container);
 
   g_return_if_fail (self);
-  g_return_if_fail (TAKU_IS_ICON_TILE (widget));
+  g_return_if_fail (TAKU_IS_LAUNCHER_TILE (widget));
 
   egg_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
 
@@ -396,6 +420,8 @@ taku_table_finalize (GObject *object)
 
   egg_sequence_free (table->priv->seq);
 
+  g_free (table->priv->category);
+
   g_list_free (table->priv->dummies);
 
   g_object_unref (table->priv->im_context);
@@ -443,6 +469,8 @@ taku_table_init (TakuTable *self)
 
   self->priv->seq = egg_sequence_new (NULL);
 
+  self->priv->category = NULL;
+
   self->priv->dummies = NULL;
 
   self->priv->im_context = gtk_im_multicontext_new ();
@@ -454,4 +482,28 @@ GtkWidget *
 taku_table_new (void)
 {
   return g_object_new (TAKU_TYPE_TABLE, NULL);
+}
+
+void
+taku_table_set_category (TakuTable *table, const char *category)
+{
+  g_return_if_fail (TAKU_IS_TABLE (table));
+
+  if (table->priv->category) {
+    g_free (table->priv->category);
+    table->priv->category = NULL;
+  }
+
+  if (category)
+    table->priv->category = g_strdup (category);
+
+  reflow (table);
+}
+
+const char *
+taku_table_get_category (TakuTable *table)
+{
+  g_return_val_if_fail (TAKU_IS_TABLE (table), NULL);
+
+  return table->priv->category;
 }
