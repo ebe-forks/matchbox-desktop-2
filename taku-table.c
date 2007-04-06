@@ -63,6 +63,24 @@ compare_tiles (gconstpointer a,
     return g_utf8_collate (ka, kb);
 }
 
+/* Compare two tiles exactly */
+static int
+compare_tiles_exact (gconstpointer a,
+                     gconstpointer b,
+                     gpointer      user_data)
+{
+  int ret = compare_tiles (a, b, user_data);
+
+  if (ret == 0) {
+    if (a < b)
+      ret = -1;
+    else if (a > b)
+      ret = 1;
+  }
+
+  return ret;
+}
+
 /* Normalize strings for case and representation insensitive comparison */
 static char *
 utf8_normalize_and_casefold (const char *str)
@@ -263,10 +281,8 @@ container_remove (GtkContainer *container, GtkWidget *widget)
   g_return_if_fail (self);
 
   /* Find the appropriate iter first */
-  /* XXX This search may not return the right tile, if two tiles have
-   * the same primary text */
   iter = egg_sequence_search (self->priv->seq,
-                              widget, compare_tiles, NULL);
+                              widget, compare_tiles_exact, NULL);
   iter = egg_sequence_iter_prev (iter);
   if (egg_sequence_iter_is_end (iter) || egg_sequence_get (iter) != widget) {
     /* We have here a dummy, or something that is not contained */

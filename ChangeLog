@@ -1,5 +1,11 @@
 2007-04-06  Jorn Baayen  <jorn@openedhand.com>
 
+	* taku-table.c: (compare_tiles), (container_add),
+	(container_remove):
+	Add exact searching function for tile removal.
+
+2007-04-06  Jorn Baayen  <jorn@openedhand.com>
+
 	* TODO:
 	* main.c:
 	* taku-icon-tile.c: (taku_icon_tile_finalize),
