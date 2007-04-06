@@ -1,5 +1,13 @@
 2007-04-06  Jorn Baayen  <jorn@openedhand.com>
 
+	* main.c: (set_category), (prev_category), (next_category), (main):
+	* taku-table.c: (taku_table_key_press_event),
+	(taku_table_finalize), (taku_table_class_init):
+	Focus first tile when switching categories by walking off the
+	screen using the keyboard.
+
+2007-04-06  Jorn Baayen  <jorn@openedhand.com>
+
 	* taku-icon-tile.c: (taku_icon_tile_set_icon_name):
 	Use correct icon size.
 

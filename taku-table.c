@@ -418,6 +418,26 @@ taku_table_key_press_event (GtkWidget   *widget,
 }
 
 static void
+taku_table_grab_focus (GtkWidget *widget)
+{
+  TakuTable *table = TAKU_TABLE (widget);
+  EggSequenceIter *iter;
+
+  iter = egg_sequence_get_begin_iter (table->priv->seq);
+  while (!egg_sequence_iter_is_end (iter)) {
+    GtkWidget *widget = egg_sequence_get (iter);
+
+    if (GTK_WIDGET_VISIBLE (widget)) {
+      gtk_widget_grab_focus (widget);
+
+      break;
+    }
+
+    iter = egg_sequence_iter_next (iter);
+  }
+}
+
+static void
 taku_table_get_property (GObject *object, guint property_id,
                          GValue *value, GParamSpec *pspec)
 {
@@ -471,6 +491,7 @@ taku_table_class_init (TakuTableClass *klass)
   widget_class->focus_in_event  = taku_table_focus_in_event;
   widget_class->focus_out_event = taku_table_focus_out_event;
   widget_class->key_press_event = taku_table_key_press_event;
+  widget_class->grab_focus      = taku_table_grab_focus;
   
   container_class->add    = container_add;
   container_class->remove = container_remove;

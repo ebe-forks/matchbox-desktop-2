@@ -54,7 +54,7 @@ set_category (GList *category_list_item)
 }
 
 static void
-prev_page (GtkButton *button, gpointer user_data)
+prev_category (void)
 {
   if (current_category->prev == NULL)
     current_category = g_list_last (categories);
@@ -65,7 +65,7 @@ prev_page (GtkButton *button, gpointer user_data)
 }
 
 static void
-next_page (GtkButton *button, gpointer user_data)
+next_category (void)
 {
   if (current_category->next == NULL)
     current_category = categories;
@@ -75,16 +75,20 @@ next_page (GtkButton *button, gpointer user_data)
   set_category (current_category);
 }
 
-/* Handle failed focus events by switching between pages */
+/* Handle failed focus events by switching between categories */
 static gboolean
 focus_cb (GtkWidget *widget, GtkDirectionType direction, gpointer user_data)
 {
   if (direction == GTK_DIR_LEFT) {
-    prev_page (NULL, NULL);
+    prev_category ();
+
+    gtk_widget_grab_focus (GTK_WIDGET (table));
 
     return TRUE;
   } else if (direction == GTK_DIR_RIGHT) {
-    next_page (NULL, NULL);
+    next_category ();
+
+    gtk_widget_grab_focus (GTK_WIDGET (table));
 
     return TRUE;
   }
@@ -343,7 +347,7 @@ main (int argc, char **argv)
   button = gtk_button_new ();
   gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (prev_page), NULL);
+  g_signal_connect (button, "clicked", G_CALLBACK (prev_category), NULL);
   gtk_widget_show (button);
   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
 
@@ -364,7 +368,7 @@ main (int argc, char **argv)
   button = gtk_button_new ();
   gtk_widget_set_name (button, "MatchboxDesktopNextButton");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (next_page), NULL);
+  g_signal_connect (button, "clicked", G_CALLBACK (next_category), NULL);
   gtk_widget_show (button);
   gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, TRUE, 0);
 
