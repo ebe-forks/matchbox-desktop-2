@@ -157,7 +157,7 @@ taku_icon_tile_set_icon_name (TakuIconTile *tile, const char *name)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_image_set_from_icon_name (GTK_IMAGE (tile->priv->icon),
-                                name, GTK_ICON_SIZE_DIALOG);
+                                name, gtk_icon_size_from_name ("TakuIcon"));
 }
 
 void
