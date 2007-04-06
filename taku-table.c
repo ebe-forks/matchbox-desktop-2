@@ -126,9 +126,12 @@ im_context_commit_cb (GtkIMContext *context,
     }
 
     tile = egg_sequence_get (iter);
+    if (!GTK_WIDGET_VISIBLE (tile))
+      goto next;
+
     text = taku_tile_get_search_key (tile);
     if (text == NULL)
-      continue;
+      goto next;
 
     norm_text = utf8_normalize_and_casefold (text);
 
@@ -140,6 +143,7 @@ im_context_commit_cb (GtkIMContext *context,
 
     g_free (norm_text);
 
+next:
     iter = egg_sequence_iter_next (iter);
   } while (iter != begin_iter);
 
@@ -478,7 +482,6 @@ taku_table_init (TakuTable *self)
   self->priv = GET_PRIVATE (self);
 
   gtk_container_set_border_width (GTK_CONTAINER (self), 6);
-  gtk_table_set_homogeneous (GTK_TABLE (self), TRUE);
   gtk_table_set_row_spacings (GTK_TABLE (self), 6);
   gtk_table_set_col_spacings (GTK_TABLE (self), 6);
   self->priv->columns = 0;

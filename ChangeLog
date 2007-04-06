@@ -1,5 +1,12 @@
 2007-04-06  Jorn Baayen  <jorn@openedhand.com>
 
+	* taku-table.c: (im_context_commit_cb), (taku_table_init):
+	Skip invisible tiles when searching. Do not set table to be
+	homogenous, as it causes invisible rows to be taken into account
+	when requesting size.
+
+2007-04-06  Jorn Baayen  <jorn@openedhand.com>
+
 	* taku-table.c: (compare_tiles), (container_add),
 	(container_remove):
 	Add exact searching function for tile removal.
