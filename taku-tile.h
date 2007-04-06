@@ -51,13 +51,25 @@ typedef struct {
 
 typedef struct {
   GtkEventBoxClass parent_class;
+
   void (* activate) (TakuTile *tile);
   void (* clicked) (TakuTile *tile);
+
+  const char *(* get_sort_key) (TakuTile *tile);
+  const char *(* get_search_key) (TakuTile *tile);
+
+  gboolean (* matches_filter) (TakuTile *tile, gpointer filter);
 } TakuTileClass;
 
 GType taku_tile_get_type (void);
 
 GtkWidget* taku_tile_new (void);
+
+const char *taku_tile_get_sort_key (TakuTile *tile);
+
+const char *taku_tile_get_search_key (TakuTile *tile);
+
+gboolean taku_tile_matches_filter (TakuTile *tile, gpointer filter);
 
 G_END_DECLS
 

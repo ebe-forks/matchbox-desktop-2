@@ -202,3 +202,46 @@ taku_tile_new (void)
 {
   return g_object_new (TAKU_TYPE_TILE, NULL);
 }
+
+const char *
+taku_tile_get_sort_key (TakuTile *tile)
+{
+  TakuTileClass *class;
+
+  g_return_val_if_fail (TAKU_IS_TILE (tile), NULL);
+
+  class = TAKU_TILE_GET_CLASS (tile);
+  if (class->get_sort_key != NULL)
+    return class->get_sort_key (tile);
+  else
+    return NULL;
+}
+
+const char *
+taku_tile_get_search_key (TakuTile *tile)
+{
+  TakuTileClass *class;
+
+  g_return_val_if_fail (TAKU_IS_TILE (tile), NULL);
+
+  class = TAKU_TILE_GET_CLASS (tile);
+  if (class->get_search_key != NULL)
+    return class->get_search_key (tile);
+  else
+    return NULL;
+}
+
+gboolean
+taku_tile_matches_filter (TakuTile *tile, gpointer filter)
+{
+  TakuTileClass *class;
+
+  g_return_val_if_fail (TAKU_IS_TILE (tile), FALSE);
+  g_return_val_if_fail (filter != NULL, FALSE);
+
+  class = TAKU_TILE_GET_CLASS (tile);
+  if (class->matches_filter != NULL)
+    return class->matches_filter (tile, filter);
+  else
+    return TRUE;
+}

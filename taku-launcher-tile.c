@@ -17,6 +17,7 @@
  */
 
 #include <gtk/gtk.h>
+#include <string.h>
 #include "taku-launcher-tile.h"
 #include "launcher-util.h"
 
@@ -36,7 +37,7 @@ struct _TakuLauncherTilePrivate
 
 static void
 taku_launcher_tile_get_property (GObject *object, guint property_id,
-                              GValue *value, GParamSpec *pspec)
+                                 GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
   default:
@@ -46,7 +47,7 @@ taku_launcher_tile_get_property (GObject *object, guint property_id,
 
 static void
 taku_launcher_tile_set_property (GObject *object, guint property_id,
-                              const GValue *value, GParamSpec *pspec)
+                                 const GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
   default:
@@ -81,6 +82,19 @@ taku_launcher_tile_clicked (TakuTile *tile)
   launcher_start (GTK_WIDGET (tile), launcher->priv->data);
 }
 
+static gboolean
+taku_launcher_tile_matches_filter (TakuTile *tile, gpointer filter)
+{
+  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
+  int i;
+
+  for (i = 0; launcher->priv->data->categories[i] != NULL; i++)
+    if (!strcmp (launcher->priv->data->categories[i], filter))
+      return TRUE;
+
+  return FALSE;
+}
+
 static void
 taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
 {
@@ -90,6 +104,7 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
   g_type_class_add_private (klass, sizeof (TakuLauncherTilePrivate));
 
   tile_class->clicked = taku_launcher_tile_clicked;
+  tile_class->matches_filter = taku_launcher_tile_matches_filter;
 
   object_class->get_property = taku_launcher_tile_get_property;
   object_class->set_property = taku_launcher_tile_set_property;

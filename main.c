@@ -31,21 +31,24 @@ typedef struct {
   char *name;
 } Category;
 
-static GtkLabel *switcher_label;
-static TakuTable *table;
 static GList *categories;
 static GList *current_category;
+
+static TakuTable *table;
+
+static GtkLabel *switcher_label;
 
 static gboolean
 popup_menu (GtkButton *button, gpointer user_data);
 
+/* Changes the current category: Updates the switcher label and table filter */
 static void
 set_category (GList *category_list_item)
 {
   Category *category = category_list_item->data;
 
   gtk_label_set_text (switcher_label, category->name);
-  taku_table_set_category (table, category->match);
+  taku_table_set_filter (table, category->match);
 
   current_category = category_list_item;
 }

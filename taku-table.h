@@ -61,9 +61,9 @@ GType taku_table_get_type (void);
 
 GtkWidget* taku_table_new (void);
 
-void taku_table_set_category (TakuTable *table, const char *category);
+void taku_table_set_filter (TakuTable *table, gpointer filter);
 
-const char *taku_table_get_category (TakuTable *table);
+gpointer taku_table_get_filter (TakuTable *table);
 
 G_END_DECLS
 

@@ -1,9 +1,3 @@
-Categories
-- read mbdesktop1 categories map file
-- create multiple pages
-- combo to select category
-- if keynav failed switch to prev/next category
-
 Favourite Idea 1
 - use GtkRecent to store the count of apps being started
 - show top 10 most run apps
@@ -12,9 +6,4 @@ Favourite Idea 2
 - Just have a context menu to add/remove apps to the favourite group
 
 Single Instance
-- Need to support matchbox single instance hack
 - Support GtkUnique directly via keys in desktop files?
-
-Misc
-- sorting assumes icontile.  add taku_tile_get_sort_key() and in icon tile
-  return the primary.

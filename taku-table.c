@@ -20,8 +20,6 @@
 #include <string.h>
 #include "eggsequence.h"
 #include "taku-table.h"
-#include "taku-icon-tile.h"
-#include "taku-launcher-tile.h"
 
 G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
 
@@ -37,7 +35,7 @@ struct _TakuTablePrivate
 
   EggSequence *seq;
 
-  char *category;
+  gpointer filter;
 
   GList *dummies;
 
@@ -50,13 +48,19 @@ compare_tiles (gconstpointer a,
                gconstpointer b,
                gpointer      user_data)
 {
-  TakuIconTile *ta, *tb;
+  const char *ka, *kb;
 
-  ta = TAKU_ICON_TILE (a);
-  tb = TAKU_ICON_TILE (b);
+  ka = taku_tile_get_sort_key (TAKU_TILE (a));
+  kb = taku_tile_get_sort_key (TAKU_TILE (b));
 
-  return g_utf8_collate (taku_icon_tile_get_primary (ta),
-                         taku_icon_tile_get_primary (tb));
+  if (ka != NULL && kb == NULL)
+    return 1;
+  else if (ka == NULL && kb != NULL)
+    return -1;
+  else if (ka == NULL && kb == NULL)
+    return 0;
+  else
+    return g_utf8_collate (ka, kb);
 }
 
 /* Normalize strings for case and representation insensitive comparison */
@@ -93,7 +97,7 @@ im_context_commit_cb (GtkIMContext *context,
 
   iter = begin_iter;
   do {
-    TakuIconTile *tile;
+    TakuTile *tile;
     const char *text;
     char *norm_text;
 
@@ -104,7 +108,10 @@ im_context_commit_cb (GtkIMContext *context,
     }
 
     tile = egg_sequence_get (iter);
-    text = taku_icon_tile_get_primary (tile);
+    text = taku_tile_get_search_key (tile);
+    if (text == NULL)
+      continue;
+
     norm_text = utf8_normalize_and_casefold (text);
 
     if (strncmp (norm_str, norm_text, strlen (norm_str)) == 0) {
@@ -127,15 +134,17 @@ on_tile_focus (GtkWidget *widget, GdkEventFocus *event, gpointer user_data)
   GtkWidget *viewport = GTK_WIDGET (user_data)->parent;
   GtkAdjustment *adjustment;
   
-  /* If the lowest point of the tile is lower than the height of the viewport, or
-     if the top of the tile is higher than the viewport is... */
-  if (widget->allocation.y + widget->allocation.height > viewport->allocation.height ||
+  /* If the lowest point of the tile is lower than the height of the viewport, 
+   * or if the top of the tile is higher than the viewport is... */
+  if (widget->allocation.y +
+      widget->allocation.height > viewport->allocation.height ||
       widget->allocation.y < viewport->allocation.height) {
     adjustment = gtk_viewport_get_vadjustment (GTK_VIEWPORT (viewport));
     
     gtk_adjustment_clamp_page (adjustment,
                                widget->allocation.y,
-                               widget->allocation.y + widget->allocation.height);
+                               widget->allocation.y +
+                               widget->allocation.height);
   }
 
   return FALSE;
@@ -144,28 +153,19 @@ on_tile_focus (GtkWidget *widget, GdkEventFocus *event, gpointer user_data)
 static void
 reflow_foreach (gpointer widget, gpointer user_data)
 {
+  TakuTile *tile = TAKU_TILE (widget);
   TakuTable *table = TAKU_TABLE (user_data);
   GtkContainer *container = GTK_CONTAINER (user_data);
 
-  if (table->priv->category != NULL) {
-    const char **categories =
-      taku_launcher_tile_get_categories (TAKU_LAUNCHER_TILE (widget));
-    gboolean found = FALSE;
-    int i;
-
-    for (i = 0; categories[i] != NULL; i++) {
-      if (!strcmp (categories[i], table->priv->category)) {
-        found = TRUE;
-        break;
-      }
-    }
-
-    if (!found) {
+  /* Filter out unwanted items */
+  if (table->priv->filter != NULL) {
+    if (!taku_tile_matches_filter (tile, table->priv->filter)) {
       gtk_widget_hide (widget);
       return;
     }
   }
 
+  /* We want this item. Align. */
   gtk_widget_show (widget);
 
   gtk_container_child_set (container, GTK_WIDGET (widget),
@@ -242,7 +242,7 @@ container_add (GtkContainer *container, GtkWidget *widget)
   TakuTable *self = TAKU_TABLE (container);
 
   g_return_if_fail (self);
-  g_return_if_fail (TAKU_IS_LAUNCHER_TILE (widget));
+  g_return_if_fail (TAKU_IS_TILE (widget));
 
   egg_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
 
@@ -301,7 +301,8 @@ calculate_columns (GtkWidget *widget)
   context = gtk_widget_get_pango_context (widget);
   metrics = pango_context_get_metrics (context, widget->style->font_desc, NULL);
 
-  width = PANGO_PIXELS (30 * pango_font_metrics_get_approximate_char_width (metrics));
+  width = PANGO_PIXELS
+          (30 * pango_font_metrics_get_approximate_char_width (metrics));
   new_cols = MAX (1, widget->allocation.width / width);
 
   if (table->priv->columns != new_cols) {
@@ -339,20 +340,20 @@ static void
 taku_table_size_allocate (GtkWidget     *widget,
                           GtkAllocation *allocation)
 {
-  /* TODO: to work around viewport bug, connect to the scrolled window's
-     size-allocate instead */
   widget->allocation = *allocation;
 
   calculate_columns (widget);
 
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->size_allocate) (widget, allocation);
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->size_allocate)
+    (widget, allocation);
 }
 
 static void
 taku_table_style_set (GtkWidget *widget,
                       GtkStyle  *previous_style)
 {
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->style_set) (widget, previous_style);
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->style_set)
+    (widget, previous_style);
 
   calculate_columns (widget);
 }
@@ -364,7 +365,8 @@ taku_table_focus_in_event (GtkWidget *widget, GdkEventFocus *event)
 
   gtk_im_context_focus_in (self->priv->im_context);
 
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_in_event) (widget, event);
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_in_event)
+    (widget, event);
 
   return FALSE;
 }
@@ -376,7 +378,8 @@ taku_table_focus_out_event (GtkWidget *widget, GdkEventFocus *event)
 
   gtk_im_context_focus_out (self->priv->im_context);
 
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_out_event) (widget, event);
+  (* GTK_WIDGET_CLASS (taku_table_parent_class)->focus_out_event)
+    (widget, event);
 
   return FALSE;
 }
@@ -390,7 +393,8 @@ taku_table_key_press_event (GtkWidget   *widget,
   if (gtk_im_context_filter_keypress (table->priv->im_context, event))
     return TRUE;
 
-  return (* GTK_WIDGET_CLASS (taku_table_parent_class)->key_press_event) (widget, event);
+  return (* GTK_WIDGET_CLASS (taku_table_parent_class)->key_press_event)
+           (widget, event);
 }
 
 static void
@@ -419,8 +423,6 @@ taku_table_finalize (GObject *object)
   TakuTable *table = TAKU_TABLE (object);
 
   egg_sequence_free (table->priv->seq);
-
-  g_free (table->priv->category);
 
   g_list_free (table->priv->dummies);
 
@@ -469,7 +471,7 @@ taku_table_init (TakuTable *self)
 
   self->priv->seq = egg_sequence_new (NULL);
 
-  self->priv->category = NULL;
+  self->priv->filter = NULL;
 
   self->priv->dummies = NULL;
 
@@ -485,25 +487,19 @@ taku_table_new (void)
 }
 
 void
-taku_table_set_category (TakuTable *table, const char *category)
+taku_table_set_filter (TakuTable *table, gpointer filter)
 {
   g_return_if_fail (TAKU_IS_TABLE (table));
 
-  if (table->priv->category) {
-    g_free (table->priv->category);
-    table->priv->category = NULL;
-  }
-
-  if (category)
-    table->priv->category = g_strdup (category);
+  table->priv->filter = filter;
 
   reflow (table);
 }
 
-const char *
-taku_table_get_category (TakuTable *table)
+gpointer
+taku_table_get_filter (TakuTable *table)
 {
   g_return_val_if_fail (TAKU_IS_TABLE (table), NULL);
 
-  return table->priv->category;
+  return table->priv->filter;
 }

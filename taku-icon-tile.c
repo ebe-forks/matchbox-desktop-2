@@ -66,10 +66,17 @@ taku_icon_tile_finalize (GObject *object)
   G_OBJECT_CLASS (taku_icon_tile_parent_class)->finalize (object);
 }
 
+static const char *
+taku_icon_tile_get_key (TakuTile *tile)
+{
+  return taku_icon_tile_get_primary (TAKU_ICON_TILE (tile));
+}
+
 static void
 taku_icon_tile_class_init (TakuIconTileClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  TakuTileClass *tile_class = TAKU_TILE_CLASS (klass);
 
   g_type_class_add_private (klass, sizeof (TakuIconTilePrivate));
 
@@ -77,6 +84,9 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
   object_class->set_property = taku_icon_tile_set_property;
   object_class->dispose = taku_icon_tile_dispose;
   object_class->finalize = taku_icon_tile_finalize;
+
+  tile_class->get_sort_key = taku_icon_tile_get_key;
+  tile_class->get_search_key = taku_icon_tile_get_key;
 }
 
 static void

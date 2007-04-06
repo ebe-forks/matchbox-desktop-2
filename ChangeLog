@@ -1,5 +1,27 @@
 2007-04-06  Jorn Baayen  <jorn@openedhand.com>
 
+	* TODO:
+	* main.c:
+	* taku-icon-tile.c: (taku_icon_tile_finalize),
+	(taku_icon_tile_class_init):
+	* taku-launcher-tile.c: (taku_launcher_tile_get_property),
+	(taku_launcher_tile_clicked), (taku_launcher_tile_matches_filter),
+	(taku_launcher_tile_class_init):
+	* taku-table.c: (compare_tiles), (im_context_commit_cb),
+	(on_tile_focus), (container_add), (calculate_columns),
+	(taku_table_size_allocate), (taku_table_focus_in_event),
+	(taku_table_focus_out_event), (taku_table_key_press_event),
+	(taku_table_finalize), (taku_table_init), (taku_table_new):
+	* taku-table.h:
+	* taku-tile.c: (taku_tile_new):
+	* taku-tile.h:
+
+	Add generic TakuTile methods get_search_key, get_sort_key, and
+	matches_filter. Implement them in IconTile and LauncherTile.
+	Make TakuTable work with generic TakuTiles again.
+
+2007-04-06  Jorn Baayen  <jorn@openedhand.com>
+
 	* taku-table.c: (reflow_foreach), (reflow), (container_add),
 	(taku_table_get_property), (taku_table_set_property),
 	(taku_table_finalize), (taku_table_class_init), (taku_table_init),
