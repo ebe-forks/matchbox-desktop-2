@@ -419,6 +419,8 @@ main (int argc, char **argv)
   gtk_main ();
 
   /* Cleanup */
+  gtk_widget_destroy (window);
+
   while (categories) {
     Category *category = categories->data;
 

@@ -1,3 +1,8 @@
+2007-04-11  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (main):
+	Destroy window on exit.
+
 2007-04-06  Jorn Baayen  <jorn@openedhand.com>
 
 	* main.c: (set_category), (prev_category), (next_category), (main):
