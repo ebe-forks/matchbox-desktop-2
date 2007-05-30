@@ -276,8 +276,7 @@ launcher_get_icon (GtkIconTheme *icon_theme, LauncherData *data, int size)
     return NULL;
 }
 
-/* TODO: handle matchbox classic single instance, and optionally link to
-   GtkUnique and directly handle that */
+/* TODO: optionally link to GtkUnique and directly handle that? */
 void
 launcher_start (GtkWidget *widget, LauncherData *data)
 {
@@ -286,6 +285,7 @@ launcher_start (GtkWidget *widget, LauncherData *data)
   SnLauncherContext *context;
 #endif
 
+  /* Check for an existing instance if Matchbox single instance */
   if (data->single_instance) {
     Window win_found;
 
