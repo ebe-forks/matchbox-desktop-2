@@ -318,8 +318,7 @@ launcher_start (GtkWidget *widget, LauncherData *data)
     sn_launcher_context_set_name (context, data->name);
     sn_launcher_context_set_binary_name (context, data->argv[0]);
 
-    /* TODO: remove hard-coded starter string */
-    sn_launcher_context_initiate (context, "matchbox-desktop", data->argv[0], CurrentTime);
+    sn_launcher_context_initiate (context, g_get_prgname (), data->argv[0], CurrentTime);
   }
 #endif
   
