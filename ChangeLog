@@ -1,3 +1,9 @@
+2007-06-01  Ross Burton  <ross@openedhand.com>
+
+	* launcher-util.c:
+	Use g_spawn() instead of fork/exec directly, and if the spawn
+	fails stop the notification.
+
 2007-05-31  Ross Burton  <ross@openedhand.com>
 
 	* launcher-util.c:

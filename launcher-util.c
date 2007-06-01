@@ -21,6 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <glib.h>
+#include <gtk/gtkmain.h>
 #include <gtk/gtkwidget.h>
 #include <gdk/gdkx.h>
 #include "launcher-util.h"
@@ -276,11 +277,22 @@ launcher_get_icon (GtkIconTheme *icon_theme, LauncherData *data, int size)
     return NULL;
 }
 
+static void
+child_setup (gpointer user_data)
+{
+#ifdef USE_LIBSN
+  if (user_data) {
+    sn_launcher_context_setup_child_process (user_data);
+  }
+#endif
+}
+
+
 /* TODO: optionally link to GtkUnique and directly handle that? */
 void
 launcher_start (GtkWidget *widget, LauncherData *data)
 {
-  pid_t child_pid = 0;
+  GError *error = NULL;
 #ifdef USE_LIBSN
   SnLauncherContext *context;
 #endif
@@ -317,27 +329,21 @@ launcher_start (GtkWidget *widget, LauncherData *data)
     
     sn_launcher_context_set_name (context, data->name);
     sn_launcher_context_set_binary_name (context, data->argv[0]);
-
-    sn_launcher_context_initiate (context, g_get_prgname (), data->argv[0], CurrentTime);
+    /* TODO: set workspace, steal gedit_utils_get_current_workspace */
+    
+    sn_launcher_context_initiate (context,
+                                  g_get_prgname () ?: "unknown",
+                                  data->argv[0],
+                                  gtk_get_current_event_time ());
   }
 #endif
-  
-  /* TODO: should this use g_spawn_async? */
-  switch ((child_pid = fork ())) {
-  case -1:
-    g_warning ("Fork failed");
-    break;
-  case 0:
-#ifdef USE_LIBSN
-    if (data->use_sn)
-      sn_launcher_context_setup_child_process (context);
-#endif
-    execvp (data->argv[0], data->argv);
     
-    g_warning ("Failed to execvp() %s", data->argv[0]);
-    _exit (1);
-    
-    break;
+  if (!g_spawn_async (NULL, data->argv, NULL,
+                            G_SPAWN_SEARCH_PATH, child_setup, data->use_sn ? context : NULL, 
+                            NULL, &error)) {
+    g_warning ("Cannot launch %s: %s", data->argv[0], error->message);
+    g_error_free (error);
+    sn_launcher_context_complete (context);
   }
   
 #ifdef USE_LIBSN
