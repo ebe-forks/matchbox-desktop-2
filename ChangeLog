@@ -1,3 +1,10 @@
+2007-06-06  Ross Burton  <ross@openedhand.com>
+
+	* launcher-util.c:
+	If GTK+ 2.11.3 is being used, call gdk_spawn() to get multihead
+	handling for free.  This isn't really a great issue on handhelds,
+	but its nice to be safe.
+
 2007-06-01  Ross Burton  <ross@openedhand.com>
 
 	* launcher-util.c:

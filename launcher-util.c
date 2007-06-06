@@ -21,8 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <glib.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include "launcher-util.h"
 #include "xutil.h"
@@ -337,8 +336,14 @@ launcher_start (GtkWidget *widget, LauncherData *data)
                                   gtk_get_current_event_time ());
   }
 #endif
-    
-  if (!g_spawn_async (NULL, data->argv, NULL,
+  
+  /* GTK+ 2.11.3 has a gdk_spawn_on_screen which doesn't trash envp */
+#if GTK_CHECK_VERSION(2,11,3)
+  if (!gdk_spawn_on_screen (gtk_widget_get_screen (widget),
+#else
+  if (!g_spawn_async (
+#endif
+                            NULL, data->argv, NULL,
                             G_SPAWN_SEARCH_PATH, child_setup, data->use_sn ? context : NULL, 
                             NULL, &error)) {
     g_warning ("Cannot launch %s: %s", data->argv[0], error->message);
