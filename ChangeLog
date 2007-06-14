@@ -1,3 +1,10 @@
+2007-06-14  Ross Burton  <ross@openedhand.com>
+
+	* main.c:
+	Listen for button presses on the group combo, so you can change
+	group in a single tap-and-drag, instead of requiring two taps.
+	Also means cleaner code.
+
 2007-06-06  Ross Burton  <ross@openedhand.com>
 
 	* launcher-util.c:

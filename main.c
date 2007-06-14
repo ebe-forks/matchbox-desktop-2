@@ -38,9 +38,6 @@ static TakuTable *table;
 
 static GtkLabel *switcher_label;
 
-static gboolean
-popup_menu (GtkButton *button, gpointer user_data);
-
 /* Changes the current category: Updates the switcher label and table filter */
 static void
 set_category (GList *category_list_item)
@@ -116,24 +113,20 @@ popdown_menu (GtkMenuShell *menu_shell, gpointer user_data)
   GtkToggleButton *button = GTK_TOGGLE_BUTTON (user_data);
 
   /* Button up */
-  g_signal_handlers_block_by_func (button, popup_menu, NULL);
   gtk_toggle_button_set_active (button, FALSE);
-  g_signal_handlers_unblock_by_func (button, popup_menu, NULL);
 
   /* Destroy menu */
   gtk_widget_destroy (GTK_WIDGET (menu_shell));
 }
 
 static gboolean
-popup_menu (GtkButton *button, gpointer user_data)
+popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
 {
   GtkWidget *menu;
   GList *l;
 
   /* Button down */
-  g_signal_handlers_block_by_func (button, popup_menu, NULL);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-  g_signal_handlers_unblock_by_func (button, popup_menu, NULL);
 
   /* Create menu */
   menu = gtk_menu_new ();
@@ -160,10 +153,8 @@ popup_menu (GtkButton *button, gpointer user_data)
   /* Popup menu */
   gtk_menu_popup (GTK_MENU (menu),
                   NULL, NULL,
-                  position_menu,
-                  button,
-                  1,
-                  GDK_CURRENT_TIME);
+                  position_menu, button,
+                  event->button, event->time);
 
   return TRUE;
 }
@@ -357,7 +348,7 @@ main (int argc, char **argv)
 
   button = gtk_toggle_button_new ();
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (popup_menu), NULL);
+  g_signal_connect (button, "button-press-event", G_CALLBACK (popup_menu), NULL);
   gtk_widget_show (button);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
 
