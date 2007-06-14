@@ -1,6 +1,12 @@
 2007-06-14  Ross Burton  <ross@openedhand.com>
 
 	* main.c:
+	Don't destroy the window explicitly, if gtk_main() returns it has
+	already been destroyed.
+
+2007-06-14  Ross Burton  <ross@openedhand.com>
+
+	* main.c:
 	Listen for button presses on the group combo, so you can change
 	group in a single tap-and-drag, instead of requiring two taps.
 	Also means cleaner code.
