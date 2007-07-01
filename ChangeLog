@@ -1,3 +1,8 @@
+2007-07-01  Ross Burton  <ross@openedhand.com>
+
+	* Makefile.am:
+	Use global flags to stop new automakes moaning.
+
 2007-06-14  Ross Burton  <ross@openedhand.com>
 
 	* main.c:

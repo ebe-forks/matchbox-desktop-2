@@ -2,12 +2,9 @@ bin_PROGRAMS = matchbox-desktop
 
 PKGDATADIR = $(datadir)/matchbox
 
-matchbox_desktop_CPPFLAGS = \
-	$(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
-matchbox_desktop_CFLAGS = \
-	-Wall
-matchbox_desktop_LDADD = \
-	$(GTK_LIBS) $(SN_LIBS)
+AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
+AM_CFLAGS = -Wall
+LDADD = $(GTK_LIBS) $(SN_LIBS)
 
 matchbox_desktop_SOURCES = \
 	taku-tile.h taku-tile.c \
