@@ -23,6 +23,15 @@
 
 G_BEGIN_DECLS
 
+typedef struct {
+  char *name;
+  char **matches;
+} TakuLauncherCategory;
+
+TakuLauncherCategory * taku_launcher_category_new (void);
+void taku_launcher_category_free (TakuLauncherCategory *launcher);
+
+
 #define TAKU_TYPE_LAUNCHER_TILE taku_launcher_tile_get_type()
 
 #define TAKU_LAUNCHER_TILE(obj) \
@@ -63,6 +72,8 @@ GtkWidget* taku_launcher_tile_new (void);
 GtkWidget * taku_launcher_tile_for_desktop_file (const char *filename);
 
 const char ** taku_launcher_tile_get_categories (TakuLauncherTile *tile);
+
+void taku_launcher_tile_add_group (TakuLauncherTile *tile, TakuLauncherCategory *category);
 
 G_END_DECLS
 

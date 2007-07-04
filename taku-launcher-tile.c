@@ -30,6 +30,7 @@ static GtkIconSize icon_size;
 
 struct _TakuLauncherTilePrivate
 {
+  GList *groups;
   LauncherData *data;
 };
 
@@ -123,14 +124,7 @@ taku_launcher_tile_clicked (TakuTile *tile)
 static gboolean
 taku_launcher_tile_matches_filter (TakuTile *tile, gpointer filter)
 {
-  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
-  int i;
-
-  for (i = 0; launcher->priv->data->categories[i] != NULL; i++)
-    if (!strcmp (launcher->priv->data->categories[i], filter))
-      return TRUE;
-
-  return FALSE;
+  return g_list_find (TAKU_LAUNCHER_TILE (tile)->priv->groups, filter) != NULL;
 }
 
 static void
@@ -217,4 +211,30 @@ taku_launcher_tile_get_categories (TakuLauncherTile *tile)
   g_return_val_if_fail (TAKU_IS_LAUNCHER_TILE (tile), NULL);
   
   return (const char **) tile->priv->data->categories;
+}
+
+void
+taku_launcher_tile_add_group (TakuLauncherTile *tile, TakuLauncherCategory *category)
+{
+  g_return_if_fail (TAKU_IS_LAUNCHER_TILE (tile));
+
+  tile->priv->groups = g_list_prepend (tile->priv->groups, category);
+}
+
+
+TakuLauncherCategory *
+taku_launcher_category_new (void)
+{
+  return g_slice_new0 (TakuLauncherCategory);
+}
+
+void
+taku_launcher_category_free (TakuLauncherCategory *category)
+{
+  g_return_if_fail (category);
+
+  g_strfreev (category->matches);
+  g_free (category->name);
+
+  g_slice_free (TakuLauncherCategory, category);
 }

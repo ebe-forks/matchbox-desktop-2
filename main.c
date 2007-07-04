@@ -26,13 +26,9 @@
 #include "taku-launcher-tile.h"
 #include "xutil.h"
 
-typedef struct {
-  char *match;
-  char *name;
-} Category;
-
 static GList *categories;
 static GList *current_category;
+static TakuLauncherCategory *fallback_category = NULL;
 
 static TakuTable *table;
 
@@ -42,10 +38,10 @@ static GtkLabel *switcher_label;
 static void
 set_category (GList *category_list_item)
 {
-  Category *category = category_list_item->data;
+  TakuLauncherCategory *category = category_list_item->data;
 
   gtk_label_set_text (switcher_label, category->name);
-  taku_table_set_filter (table, category->match);
+  taku_table_set_filter (table, category);
 
   current_category = category_list_item;
 }
@@ -135,7 +131,7 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
   g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), button);
 
   for (l = categories; l; l = l->next) {
-    Category *category = l->data;
+    TakuLauncherCategory *category = l->data;
     GtkWidget *menu_item, *label;
 
     menu_item = gtk_menu_item_new ();
@@ -168,14 +164,9 @@ load_vfolder_dir (const char *vfolderdir)
   GError *error = NULL;
   FILE *fp;
   char name[NAME_MAX], *filename;
-  Category *category;
-
-  category = g_slice_new (Category);
-  category->match = NULL;
-  category->name  = g_strdup (_("All"));
+  TakuLauncherCategory *category;
 
   categories = NULL;
-  categories = g_list_prepend (categories, category);
 
   filename = g_build_filename (vfolderdir, "Root.order", NULL);
   fp = fopen (filename, "r");
@@ -187,7 +178,8 @@ load_vfolder_dir (const char *vfolderdir)
   g_free (filename);
 
   while (fgets (name, NAME_MAX - 9, fp) != NULL) {
-    char *match = NULL, *local_name = NULL;
+    char **matches = NULL, *local_name = NULL;
+    char **l;
     GKeyFile *key_file;
 
     if (name[0] == '#' || isspace (name[0]))
@@ -207,8 +199,8 @@ load_vfolder_dir (const char *vfolderdir)
       goto done;
     }
 
-    match = g_key_file_get_string (key_file, "Desktop Entry", "Match", NULL);
-    if (match == NULL)
+    matches = g_key_file_get_string_list (key_file, "Desktop Entry", "Match", NULL, NULL);
+    if (matches == NULL)
       goto done;
 
     local_name = g_key_file_get_locale_string (key_file, "Desktop Entry",
@@ -216,22 +208,66 @@ load_vfolder_dir (const char *vfolderdir)
     if (local_name == NULL) {
       g_warning ("Directory file %s does not contain a \"Name\" field",
                  filename);
-      g_free (match);
+      g_strfreev (matches);
       goto done;
     }
 
-    category = g_slice_new (Category);
-    category->match = match;
+    category = taku_launcher_category_new ();
+    category->matches = matches;
     category->name  = local_name;
 
     categories = g_list_append (categories, category);
 
+    /* Find a fallback category */
+    if (fallback_category == NULL)
+      for (l = matches; *l; l++)
+        if (strcmp (*l, "meta-fallback") == 0)
+          fallback_category = category;
+    
   done:
     g_key_file_free (key_file);
     g_free (filename);
   }
 
   fclose (fp);
+}
+
+static void
+match_category (TakuLauncherCategory *category, TakuLauncherTile *tile, gboolean *placed)
+{
+  const char **groups;
+  char **match;
+  
+  for (match = category->matches; *match; match++) {
+    /* Add all tiles to the all group */
+    if (strcmp (*match, "meta-all") == 0) {
+      taku_launcher_tile_add_group (tile, category);
+      return;
+    }
+    
+    for (groups = taku_launcher_tile_get_categories (tile);
+         *groups; groups++) {
+      if (strcmp (*match, *groups) == 0) {
+        taku_launcher_tile_add_group (tile, category);
+        *placed = TRUE;
+        return;
+      }
+    }
+  }
+}
+
+static void
+set_groups (TakuLauncherTile *tile)
+{
+  gboolean placed = FALSE;
+  GList *l;
+  
+  for (l = categories; l ; l = l->next) {
+    match_category (l->data, tile, &placed);
+  }
+
+  if (!placed && fallback_category)
+    taku_launcher_tile_add_group (tile, fallback_category);
 }
 
 /*
@@ -277,6 +313,8 @@ load_data_dir (const char *datadir)
     tile = taku_launcher_tile_for_desktop_file (filename);
     if (!tile)
       goto done;
+
+    set_groups (TAKU_LAUNCHER_TILE (tile));
 
     gtk_container_add (GTK_CONTAINER (table), tile);
 
@@ -393,7 +431,7 @@ main (int argc, char **argv)
     load_vfolder_dir (PKGDATADIR "/vfolders");
   g_free (vfolder_dir);
 
-  /* Show the 'All' category */
+  /* Show the first category */
   set_category (categories);
 
   /* Load all desktop files in the system data directories, and the user data
@@ -411,12 +449,9 @@ main (int argc, char **argv)
 
   /* Cleanup */
   while (categories) {
-    Category *category = categories->data;
-
-    g_free (category->match);
-    g_free (category->name);
-
-    g_slice_free (Category, category);
+    TakuLauncherCategory *category = categories->data;
+    
+    taku_launcher_category_free (category);
 
     categories = g_list_delete_link (categories, categories);
   }
