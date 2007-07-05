@@ -1,3 +1,11 @@
+2007-07-05  Jorn Baayen  <jorn@openedhand.com>
+
+	* main.c: (load_data_dir), (main):
+
+	Make sure arrows request a square amount of space, where the 
+	vertical space is equal to the vertical amount of space requested
+	by the switcher label.
+
 2007-07-04  Ross Burton  <ross@burtonini.com>
 
 	* taku-launcher-tile.[ch]:

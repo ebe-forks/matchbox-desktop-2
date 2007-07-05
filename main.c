@@ -34,6 +34,15 @@ static TakuTable *table;
 
 static GtkLabel *switcher_label;
 
+/* Make sure arrows request a square amount of space */
+static void
+arrow_size_request (GtkWidget      *widget,
+                    GtkRequisition *requisition,
+                    gpointer        user_data)
+{
+  requisition->width = requisition->height;
+}
+
 /* Changes the current category: Updates the switcher label and table filter */
 static void
 set_category (GList *category_list_item)
@@ -330,6 +339,7 @@ int
 main (int argc, char **argv)
 {
   GtkWidget *window, *box, *hbox, *button, *arrow, *scrolled, *viewport;
+  GtkSizeGroup *size_group;
   const char * const *dirs;
   char *vfolder_dir;
 #ifndef STANDALONE
@@ -373,6 +383,8 @@ main (int argc, char **argv)
   gtk_widget_show (hbox);
   gtk_box_pack_start (GTK_BOX (box), hbox, FALSE, TRUE, 0);
 
+  size_group = gtk_size_group_new (GTK_SIZE_GROUP_VERTICAL);
+
   button = gtk_button_new ();
   gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
@@ -381,8 +393,11 @@ main (int argc, char **argv)
   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
+  g_signal_connect (arrow, "size-request",
+                    G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (button), arrow);
+  gtk_size_group_add_widget (size_group, arrow);
 
   button = gtk_toggle_button_new ();
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
@@ -393,6 +408,7 @@ main (int argc, char **argv)
   switcher_label = GTK_LABEL (gtk_label_new (NULL));
   gtk_widget_show (GTK_WIDGET (switcher_label));
   gtk_container_add (GTK_CONTAINER (button), GTK_WIDGET (switcher_label));
+  gtk_size_group_add_widget (size_group, GTK_WIDGET (switcher_label));
 
   button = gtk_button_new ();
   gtk_widget_set_name (button, "MatchboxDesktopNextButton");
@@ -402,8 +418,11 @@ main (int argc, char **argv)
   gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
+  g_signal_connect (arrow, "size-request",
+                    G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (button), arrow);
+  gtk_size_group_add_widget (size_group, arrow);
 
   /* Table area */
   scrolled = gtk_scrolled_window_new (NULL, NULL);
