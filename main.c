@@ -338,7 +338,8 @@ load_data_dir (const char *datadir)
 int
 main (int argc, char **argv)
 {
-  GtkWidget *window, *box, *hbox, *button, *arrow, *scrolled, *viewport;
+  GtkWidget *window, *box, *hbox, *prev_button, *next_button, *popup_button, 
+            *arrow, *scrolled, *viewport;
   GtkSizeGroup *size_group;
   const char * const *dirs;
   char *vfolder_dir;
@@ -385,43 +386,44 @@ main (int argc, char **argv)
 
   size_group = gtk_size_group_new (GTK_SIZE_GROUP_VERTICAL);
 
-  button = gtk_button_new ();
-  gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
-  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (prev_category), NULL);
-  gtk_widget_show (button);
-  gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+  prev_button = gtk_button_new ();
+  gtk_widget_set_name (prev_button, "MatchboxDesktopPrevButton");
+  gtk_button_set_relief (GTK_BUTTON (prev_button), GTK_RELIEF_NONE);
+  g_signal_connect (prev_button, "clicked", G_CALLBACK (prev_category), NULL);
+  gtk_widget_show (prev_button);
+  gtk_box_pack_start (GTK_BOX (hbox), prev_button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
   g_signal_connect (arrow, "size-request",
                     G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
-  gtk_container_add (GTK_CONTAINER (button), arrow);
+  gtk_container_add (GTK_CONTAINER (prev_button), arrow);
   gtk_size_group_add_widget (size_group, arrow);
 
-  button = gtk_toggle_button_new ();
-  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "button-press-event", G_CALLBACK (popup_menu), NULL);
-  gtk_widget_show (button);
-  gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+  popup_button = gtk_toggle_button_new ();
+  gtk_button_set_relief (GTK_BUTTON (popup_button), GTK_RELIEF_NONE);
+  g_signal_connect (popup_button, "button-press-event",
+                    G_CALLBACK (popup_menu), NULL);
+  gtk_widget_show (popup_button);
+  gtk_box_pack_start (GTK_BOX (hbox), popup_button, TRUE, TRUE, 0);
 
   switcher_label = GTK_LABEL (gtk_label_new (NULL));
   gtk_widget_show (GTK_WIDGET (switcher_label));
-  gtk_container_add (GTK_CONTAINER (button), GTK_WIDGET (switcher_label));
+  gtk_container_add (GTK_CONTAINER (popup_button), GTK_WIDGET (switcher_label));
   gtk_size_group_add_widget (size_group, GTK_WIDGET (switcher_label));
 
-  button = gtk_button_new ();
-  gtk_widget_set_name (button, "MatchboxDesktopNextButton");
-  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (next_category), NULL);
-  gtk_widget_show (button);
-  gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+  next_button = gtk_button_new ();
+  gtk_widget_set_name (next_button, "MatchboxDesktopNextButton");
+  gtk_button_set_relief (GTK_BUTTON (next_button), GTK_RELIEF_NONE);
+  g_signal_connect (next_button, "clicked", G_CALLBACK (next_category), NULL);
+  gtk_widget_show (next_button);
+  gtk_box_pack_end (GTK_BOX (hbox), next_button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
   g_signal_connect (arrow, "size-request",
                     G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
-  gtk_container_add (GTK_CONTAINER (button), arrow);
+  gtk_container_add (GTK_CONTAINER (next_button), arrow);
   gtk_size_group_add_widget (size_group, arrow);
 
   /* Table area */
@@ -451,7 +453,14 @@ main (int argc, char **argv)
   g_free (vfolder_dir);
 
   /* Show the first category */
-  set_category (categories);
+  if (categories) {
+    set_category (categories);
+  } else {
+    gtk_label_set_text (switcher_label, _("No categories available"));
+    gtk_widget_set_sensitive (prev_button, FALSE);
+    gtk_widget_set_sensitive (popup_button, FALSE);
+    gtk_widget_set_sensitive (next_button, FALSE);
+  }
 
   /* Load all desktop files in the system data directories, and the user data
      directory. TODO: would it be best to do this in an idle handler and
