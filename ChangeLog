@@ -1,3 +1,8 @@
+2007-07-12  Ross Burton  <ross@openedhand.com>
+
+	* taku-launcher-tile.c:
+	Fallback on button-sized images if the custom icon name isn't defined.
+
 2007-07-06  Chris Lord  <chris@openedhand.com>
 
 	* main.c: (main):
