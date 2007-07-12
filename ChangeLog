@@ -1,5 +1,10 @@
 2007-07-12  Ross Burton  <ross@openedhand.com>
 
+	* taku-tile.c:
+	Use SELECTED instead of PRELIGHT when a tile is focused.
+
+2007-07-12  Ross Burton  <ross@openedhand.com>
+
 	* taku-launcher-tile.c:
 	Fallback on button-sized images if the custom icon name isn't defined.
 
