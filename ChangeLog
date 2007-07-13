@@ -1,3 +1,9 @@
+2007-07-13  Ross Burton  <ross@openedhand.com>
+
+	* main.c:
+	Don't try to switch category on failed focus if the current
+	category is NULL, i.e. there are no categories.
+
 2007-07-12  Ross Burton  <ross@openedhand.com>
 
 	* taku-tile.c:

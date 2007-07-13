@@ -81,6 +81,10 @@ next_category (void)
 static gboolean
 focus_cb (GtkWidget *widget, GtkDirectionType direction, gpointer user_data)
 {
+  /* If there are no categories, don't try switching */
+  if (current_category == NULL)
+    return FALSE;
+
   if (direction == GTK_DIR_LEFT) {
     prev_category ();
 
