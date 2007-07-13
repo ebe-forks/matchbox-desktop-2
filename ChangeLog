@@ -1,3 +1,8 @@
+2007-07-14  Rob Bradford  <rob@openedhand.com>
+
+	* main.c: (main):
+	Set a size request on the arrows to 24x24.
+
 2007-07-13  Ross Burton  <ross@openedhand.com>
 
 	* main.c:

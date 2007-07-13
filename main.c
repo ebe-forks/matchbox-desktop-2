@@ -398,6 +398,7 @@ main (int argc, char **argv)
   gtk_box_pack_start (GTK_BOX (hbox), prev_button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
+  gtk_widget_set_size_request (arrow, 24, 24);
   g_signal_connect (arrow, "size-request",
                     G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
@@ -424,6 +425,7 @@ main (int argc, char **argv)
   gtk_box_pack_end (GTK_BOX (hbox), next_button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
+  gtk_widget_set_size_request (arrow, 24, 24);
   g_signal_connect (arrow, "size-request",
                     G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
