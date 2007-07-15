@@ -113,11 +113,26 @@ taku_launcher_tile_finalize (GObject *object)
   G_OBJECT_CLASS (taku_launcher_tile_parent_class)->finalize (object);
 }
 
+/*
+ * Timeout callback to restore the state of the widget after the clicked state
+ * change.
+ */
+static gboolean
+reset_state (gpointer data)
+{
+  gtk_widget_set_state (GTK_WIDGET (data), GTK_STATE_NORMAL);
+  return FALSE;
+}
+
 static void
 taku_launcher_tile_clicked (TakuTile *tile)
 {
   TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
 
+  gtk_widget_set_state (GTK_WIDGET (tile), GTK_STATE_ACTIVE);
+
+  g_timeout_add (500, reset_state, tile);
+  
   launcher_start (GTK_WIDGET (tile), launcher->priv->data);
 }
 

@@ -1,3 +1,9 @@
+2007-07-15  Ross Burton  <ross@openedhand.com>
+
+	* taku-tile.c:
+	* taku-launcher-tile.c:
+	Move the activation highlight into the launcher subclass.
+
 2007-07-14  Rob Bradford  <rob@openedhand.com>
 
 	* main.c: (main):
