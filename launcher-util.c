@@ -348,7 +348,8 @@ launcher_start (GtkWidget *widget, LauncherData *data)
                             NULL, &error)) {
     g_warning ("Cannot launch %s: %s", data->argv[0], error->message);
     g_error_free (error);
-    sn_launcher_context_complete (context);
+    if (context)
+      sn_launcher_context_complete (context);
   }
   
 #ifdef USE_LIBSN
