@@ -33,6 +33,7 @@ static TakuLauncherCategory *fallback_category = NULL;
 static TakuTable *table;
 
 static GtkLabel *switcher_label;
+static PangoAttrList *bold_attrs;
 
 /* Make sure arrows request a square amount of space */
 static void
@@ -154,6 +155,7 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
 
     label = gtk_label_new (category->name);
+    gtk_label_set_attributes (GTK_LABEL (label), bold_attrs);
     gtk_misc_set_alignment (GTK_MISC (label), 0.5, 0.0);
     gtk_widget_show (label);
     gtk_container_add (GTK_CONTAINER (menu_item), label);
@@ -345,6 +347,7 @@ main (int argc, char **argv)
   GtkWidget *window, *box, *hbox, *prev_button, *next_button, *popup_button, 
             *arrow, *scrolled, *viewport;
   GtkSizeGroup *size_group;
+  PangoAttribute *attr;
   const char * const *dirs;
   char *vfolder_dir;
 #ifndef STANDALONE
@@ -359,6 +362,17 @@ main (int argc, char **argv)
   /* Register the magic TakuIcon size so that it can be controlled from the
      theme. */
   gtk_icon_size_register ("TakuIcon", 64, 64);
+
+  /* Create an attribute list for the category labels */
+  bold_attrs = pango_attr_list_new ();
+  attr = pango_attr_weight_new (PANGO_WEIGHT_BOLD);
+  attr->start_index = 0;
+  attr->end_index = -1;
+  pango_attr_list_insert (bold_attrs, attr);
+  attr = pango_attr_scale_new (PANGO_SCALE_LARGE);
+  attr->start_index = 0;
+  attr->end_index = -1;
+  pango_attr_list_insert (bold_attrs, attr);
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
@@ -413,6 +427,7 @@ main (int argc, char **argv)
   gtk_box_pack_start (GTK_BOX (hbox), popup_button, TRUE, TRUE, 0);
 
   switcher_label = GTK_LABEL (gtk_label_new (NULL));
+  gtk_label_set_attributes (switcher_label, bold_attrs);
   gtk_widget_show (GTK_WIDGET (switcher_label));
   gtk_container_add (GTK_CONTAINER (popup_button), GTK_WIDGET (switcher_label));
   gtk_size_group_add_widget (size_group, GTK_WIDGET (switcher_label));
@@ -431,6 +446,8 @@ main (int argc, char **argv)
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (next_button), arrow);
   gtk_size_group_add_widget (size_group, arrow);
+  
+  g_object_unref (size_group);
 
   /* Table area */
   scrolled = gtk_scrolled_window_new (NULL, NULL);

@@ -1,5 +1,10 @@
 2007-07-15  Ross Burton  <ross@openedhand.com>
 
+	* main.c:
+	Make the category labels bold and big.
+
+2007-07-15  Ross Burton  <ross@openedhand.com>
+
 	* launcher-util.c:
 	Only complete the startup context if it exists, fixing a crash if
 	the binary could not be found.
