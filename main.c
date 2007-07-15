@@ -26,6 +26,14 @@
 #include "taku-launcher-tile.h"
 #include "xutil.h"
 
+#if WITH_INOTIFY
+#include "inotify/inotify-path.h"
+#include "inotify/local_inotify.h"
+
+static gboolean with_inotify;
+G_LOCK_DEFINE(inotify_lock);
+#endif
+
 static GList *categories;
 static GList *current_category;
 static TakuLauncherCategory *fallback_category = NULL;
@@ -286,7 +294,85 @@ set_groups (TakuLauncherTile *tile)
 }
 
 /*
- * Load all .desktop files in @datadir/applications/, and add them to @table.
+ * Load the desktop file @filename, and add it to the table.
+ */
+static void
+load_desktop_file (const char *filename)
+{
+  GtkWidget *tile;
+  
+  g_assert (filename);
+
+  /* TODO: load launcher data, probe that, and then create a tile */
+  
+  tile = taku_launcher_tile_for_desktop_file (filename);
+  if (!tile) {
+    return;
+  }
+  
+  set_groups (TAKU_LAUNCHER_TILE (tile));
+  
+  gtk_container_add (GTK_CONTAINER (table), tile);
+}
+
+#if WITH_INOTIFY
+/*
+ * Monitor @directory with inotify, if available.
+ */
+static void
+monitor (const char *directory)
+{
+  inotify_sub *sub;
+
+  if (!with_inotify)
+    return;
+  
+  sub = _ih_sub_new (directory, NULL, NULL);
+  _ip_start_watching (sub);
+}
+
+/*
+ * Used to delete tiles when they are removed from disk.  @a is the tile, @b is
+ * the desktop filename to look for.
+ */
+static void
+find_and_destroy (GtkWidget *widget, gpointer data)
+{
+  TakuLauncherTile *tile;
+  const char *removed, *filename;
+
+  tile = TAKU_LAUNCHER_TILE (widget);
+  if (!tile)
+    return;
+  
+  removed = data;
+  
+  filename = taku_launcher_tile_get_filename (tile);
+  if (strcmp (removed, filename) == 0)
+    gtk_widget_destroy (widget);
+}
+
+static void
+inotify_event (ik_event_t *event, inotify_sub *sub)
+{
+  char *path;
+
+  if (event->mask & IN_MOVED_TO || event->mask & IN_CREATE) {
+    if (g_str_has_suffix (event->name, ".desktop")) {
+      path = g_build_filename (sub->dirname, event->name, NULL);
+      load_desktop_file (path);
+      g_free (path);
+    }
+  } else if (event->mask & IN_MOVED_FROM || event->mask & IN_DELETE) {
+    path = g_build_filename (sub->dirname, event->name, NULL);
+    gtk_container_foreach (GTK_CONTAINER (table), find_and_destroy, path);
+    g_free (path);
+  }
+}
+#endif
+
+/*
+ * Load all .desktop files in @datadir/applications/.
  */
 static void
 load_data_dir (const char *datadir)
@@ -306,6 +392,10 @@ load_data_dir (const char *datadir)
     return;
   }
 
+#if WITH_INOTIFY
+  monitor (directory);
+#endif
+  
   dir = g_dir_open (directory, 0, &error);
   if (error) {
     g_warning ("Cannot read %s: %s", directory, error->message);
@@ -316,24 +406,14 @@ load_data_dir (const char *datadir)
 
   while ((name = g_dir_read_name (dir)) != NULL) {
     char *filename;
-    GtkWidget *tile;
   
     if (! g_str_has_suffix (name, ".desktop"))
       continue;
 
     filename = g_build_filename (directory, name, NULL);
 
-    /* TODO: load launcher data, probe that, and then create a tile */
+    load_desktop_file (filename);
 
-    tile = taku_launcher_tile_for_desktop_file (filename);
-    if (!tile)
-      goto done;
-
-    set_groups (TAKU_LAUNCHER_TILE (tile));
-
-    gtk_container_add (GTK_CONTAINER (table), tile);
-
-  done:
     g_free (filename);
   }
 
@@ -356,6 +436,10 @@ main (int argc, char **argv)
 #endif
   int w = 640, h = 480;
 
+#if WITH_INOTIFY
+  with_inotify = _ip_startup (inotify_event);
+#endif
+  
   gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
   

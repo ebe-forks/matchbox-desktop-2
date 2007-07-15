@@ -16,6 +16,22 @@ matchbox_desktop_SOURCES = \
 	eggsequence.h eggsequence.c \
 	main.c
 
+# Optional inotify support
+if HAVE_INOTIFY
+AM_CPPFLAGS += -DWITH_INOTIFY
+LDADD += libinotify.a
+
+noinst_LIBRARIES = libinotify.a
+libinotify_a_SOURCES = \
+	inotify/inotify-kernel.c inotify/inotify-kernel.h \
+	inotify/inotify-sub.c 	inotify/inotify-sub.h \
+	inotify/inotify-path.c inotify/inotify-path.h \
+	inotify/inotify-missing.c inotify/inotify-missing.h \
+	inotify/inotify-diag.c notify/inotify-diag.h \
+	inotify/local_inotify.h inotify/local_inotify_syscalls.h
+endif
+
+
 # make maintainer-clean should remove *everything* 
 MAINTAINERCLEANFILES = \
 	aclocal.m4 \

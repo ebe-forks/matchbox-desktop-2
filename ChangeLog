@@ -1,5 +1,19 @@
 2007-07-15  Ross Burton  <ross@openedhand.com>
 
+	* taku-launcher-tile.[ch]:
+	Store the original filename, and add an accessor.
+
+	* configure.ac:
+	* Makefile.am:
+	* inotify/*:
+	Add inotify abstraction layer, copied from GVFS.
+
+	* main.c:
+	Monitor for desktop files being added and removed, and update the
+	tiles as relevant.
+
+2007-07-15  Ross Burton  <ross@openedhand.com>
+
 	* main.c:
 	Make the category labels bold and big.
 

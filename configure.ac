@@ -7,7 +7,10 @@ AM_CONFIG_HEADER(config.h)
 AM_DISABLE_STATIC
 AC_PROG_CPP
 AC_PROG_CC
-dnl AM_PROG_LIBTOOL
+AC_PROG_RANLIB
+
+AC_CHECK_HEADERS([sys/inotify.h], inotify_support=yes, inotify_support=no)
+AM_CONDITIONAL(HAVE_INOTIFY, [test "$inotify_support" = "yes"])
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0)
 

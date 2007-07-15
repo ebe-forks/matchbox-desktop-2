@@ -30,6 +30,7 @@ static GtkIconSize icon_size;
 
 struct _TakuLauncherTilePrivate
 {
+  char *filename;
   GList *groups;
   LauncherData *data;
 };
@@ -109,6 +110,8 @@ taku_launcher_tile_finalize (GObject *object)
   if (tile->priv->data) {
     launcher_destroy (tile->priv->data);
   }
+
+  g_free (tile->priv->filename);
 
   G_OBJECT_CLASS (taku_launcher_tile_parent_class)->finalize (object);
 }
@@ -222,7 +225,16 @@ taku_launcher_tile_for_desktop_file (const char *filename)
 
   tile = (TakuLauncherTile*) taku_launcher_tile_new ();
   set_launcher_data (tile, data);
+  tile->priv->filename = g_strdup (filename);
   return (GtkWidget*) tile;
+}
+
+const char *
+taku_launcher_tile_get_filename (TakuLauncherTile *tile)
+{
+  g_return_val_if_fail (TAKU_IS_LAUNCHER_TILE (tile), NULL);
+  
+  return tile->priv->filename;
 }
 
 const char **
