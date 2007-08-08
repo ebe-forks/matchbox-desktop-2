@@ -27,7 +27,7 @@ libinotify_a_SOURCES = \
 	inotify/inotify-sub.c 	inotify/inotify-sub.h \
 	inotify/inotify-path.c inotify/inotify-path.h \
 	inotify/inotify-missing.c inotify/inotify-missing.h \
-	inotify/inotify-diag.c notify/inotify-diag.h \
+	inotify/inotify-diag.c inotify/inotify-diag.h \
 	inotify/local_inotify.h inotify/local_inotify_syscalls.h
 endif
 
