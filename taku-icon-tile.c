@@ -166,6 +166,8 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_label_set_text (GTK_LABEL (tile->priv->primary), text);
+
+  atk_object_set_name (gtk_widget_get_accessible (GTK_WIDGET (tile)), text);
 }
 
 const char *

@@ -490,6 +490,7 @@ main (int argc, char **argv)
 
   prev_button = gtk_button_new ();
   gtk_widget_set_name (prev_button, "MatchboxDesktopPrevButton");
+  atk_object_set_name (gtk_widget_get_accessible (prev_button), "GroupPrevious");
   gtk_button_set_relief (GTK_BUTTON (prev_button), GTK_RELIEF_NONE);
   g_signal_connect (prev_button, "clicked", G_CALLBACK (prev_category), NULL);
   gtk_widget_show (prev_button);
@@ -504,6 +505,7 @@ main (int argc, char **argv)
   gtk_size_group_add_widget (size_group, arrow);
 
   popup_button = gtk_toggle_button_new ();
+  atk_object_set_name (gtk_widget_get_accessible (popup_button), "GroupButton");
   gtk_button_set_relief (GTK_BUTTON (popup_button), GTK_RELIEF_NONE);
   g_signal_connect (popup_button, "button-press-event",
                     G_CALLBACK (popup_menu), NULL);
@@ -518,6 +520,8 @@ main (int argc, char **argv)
 
   next_button = gtk_button_new ();
   gtk_widget_set_name (next_button, "MatchboxDesktopNextButton");
+  atk_object_set_name (gtk_widget_get_accessible (next_button), "GroupNext");
+
   gtk_button_set_relief (GTK_BUTTON (next_button), GTK_RELIEF_NONE);
   g_signal_connect (next_button, "clicked", G_CALLBACK (next_category), NULL);
   gtk_widget_show (next_button);
