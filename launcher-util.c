@@ -349,7 +349,7 @@ launcher_start (GtkWidget *widget, LauncherData *data)
 #ifdef USE_LIBSN
                             data->use_sn ? context : NULL,
 #else
-                            NULL
+                            NULL,
 #endif
                             NULL,
                             &error)) {
