@@ -1,5 +1,12 @@
 2007-08-20  Ross Burton  <ross@openedhand.com>
 
+	* taku-table.c:
+	* README:
+	Allow the theme to set the width of the tiles, defaulting to
+	30. Patch by Don Mahurin <dmlist@openright.org>.
+
+2007-08-20  Ross Burton  <ross@openedhand.com>
+
 	* launcher-util.c:
 	Fix compile failure when libsn isn't used.
 
