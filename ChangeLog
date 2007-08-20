@@ -1,5 +1,10 @@
 2007-08-20  Ross Burton  <ross@openedhand.com>
 
+	* taku-icon-tile.c:
+	Split out code to make a label bold and big.
+
+2007-08-20  Ross Burton  <ross@openedhand.com>
+
 	* taku-table.c:
 	* README:
 	Allow the theme to set the width of the tiles, defaulting to
