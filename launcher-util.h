@@ -16,6 +16,9 @@
  * Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifndef HAVE_LAUNCHER_UTIL_H
+#define HAVE_LAUNCHER_UTIL_H
+
 #include <glib.h>
 #include <gtk/gtkicontheme.h>
 #include <gtk/gtkwidget.h>
@@ -39,3 +42,5 @@ void launcher_start (GtkWidget *widget, const LauncherData *data);
 char * launcher_get_icon (GtkIconTheme *icon_theme, LauncherData *data, int size);
 
 void launcher_destroy (LauncherData *data);
+
+#endif
