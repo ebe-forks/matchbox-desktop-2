@@ -443,9 +443,9 @@ main (int argc, char **argv)
   gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
   
-  /* Register the magic TakuIcon size so that it can be controlled from the
+  /* Register the magic taku-icon size so that it can be controlled from the
      theme. */
-  gtk_icon_size_register ("TakuIcon", 64, 64);
+  gtk_icon_size_register ("taku-icon", 64, 64);
 
   /* Create an attribute list for the category labels */
   bold_attrs = pango_attr_list_new ();
