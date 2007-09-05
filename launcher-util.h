@@ -34,7 +34,7 @@ typedef struct {
 
 LauncherData *launcher_parse_desktop_file (const char *filename, GError **error);
 
-void launcher_start (GtkWidget *widget, LauncherData *data);
+void launcher_start (GtkWidget *widget, const LauncherData *data);
 
 char * launcher_get_icon (GtkIconTheme *icon_theme, LauncherData *data, int size);
 

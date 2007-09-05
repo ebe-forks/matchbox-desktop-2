@@ -1,5 +1,10 @@
 2007-09-05  Ross Burton  <ross@openedhand.com>
 
+	* launcher-util.[ch]:
+	Add const keyword.
+
+2007-09-05  Ross Burton  <ross@openedhand.com>
+
 	* main.c:
 	* taku-launcher-tile.c:
 	* taku-icon-tile.c:
