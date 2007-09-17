@@ -1,3 +1,12 @@
+2007-09-17  Ross Burton  <ross@openedhand.com>
+
+	* */*:
+	Grand reorganisation.
+
+	taku-* and so are in libtaku/.
+
+	main and inotify/ are in src.
+
 2007-09-05  Chris Lord,,,  <chris@openedhand.com>
 
 	* launcher-util.h:

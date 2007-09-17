@@ -1,6 +1,6 @@
 AC_PREREQ(2.52)
 AC_INIT(matchbox-desktop, 2.0, http://o-hand.com)
-AC_CONFIG_SRCDIR(taku-tile.c)
+AC_CONFIG_SRCDIR(libtaku/taku-tile.c)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AM_CONFIG_HEADER(config.h)
 
@@ -33,4 +33,6 @@ fi
 
 AC_OUTPUT([
 Makefile
+libtaku/Makefile
+src/Makefile
 ])

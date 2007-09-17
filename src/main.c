@@ -21,10 +21,10 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <ctype.h>
-#include "taku-table.h"
-#include "taku-icon-tile.h"
-#include "taku-launcher-tile.h"
-#include "xutil.h"
+#include "libtaku/taku-table.h"
+#include "libtaku/taku-icon-tile.h"
+#include "libtaku/taku-launcher-tile.h"
+#include "libtaku/xutil.h"
 
 #if WITH_INOTIFY
 #include "inotify/inotify-path.h"

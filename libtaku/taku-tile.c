@@ -21,15 +21,6 @@
 
 G_DEFINE_ABSTRACT_TYPE (TakuTile, taku_tile, GTK_TYPE_EVENT_BOX);
 
-#define TILE_PRIVATE(o) \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_TILE, TakuTilePrivate))
-
-typedef struct _TakuTilePrivate TakuTilePrivate;
-
-struct _TakuTilePrivate
-{
-};
-
 enum {
   ACTIVATE,
   CLICKED,
@@ -142,8 +133,6 @@ taku_tile_class_init (TakuTileClass *klass)
   /* TODO: remove useless gobject-fu */
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (TakuTilePrivate));
 
   object_class->get_property = taku_tile_get_property;
   object_class->set_property = taku_tile_set_property;
