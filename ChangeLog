@@ -1,3 +1,9 @@
+2007-09-27  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/launcher-util.c:
+	Deprecate the SingleInstance key, and replace it with
+	X-MB-SingleInstance.
+
 2007-09-17  Ross Burton  <ross@openedhand.com>
 
 	* */*:

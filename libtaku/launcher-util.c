@@ -204,7 +204,8 @@ launcher_parse_desktop_file (const char *filename, GError **error)
 
   data->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
 
-  data->single_instance = get_desktop_boolean (key_file, "SingleInstance", FALSE);
+  data->single_instance = get_desktop_boolean (key_file, "X-MB-SingleInstance", FALSE) ||
+    get_desktop_boolean (key_file, "SingleInstance", FALSE);
 
   g_key_file_free (key_file);
 
