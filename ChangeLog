@@ -1,5 +1,14 @@
 2007-10-01  Chris Lord  <chris@openedhand.com>
 
+	* libtaku/taku-tile.c: (taku_tile_enter_notify),
+	(taku_tile_leave_notify), (taku_tile_button_release),
+	(taku_tile_class_init):
+	* libtaku/taku-tile.h:
+	Use enter/leave events to judge whether to activate a tile instead of
+	mouse co-ordinates
+
+2007-10-01  Chris Lord  <chris@openedhand.com>
+
 	* libtaku/taku-tile.c: (taku_tile_button_release):
 	Only activate a tile when the mouse cursor is still inside the tile 
 	when the button is released

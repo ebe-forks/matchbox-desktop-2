@@ -47,6 +47,8 @@ G_BEGIN_DECLS
 
 typedef struct {
   GtkEventBox parent;
+
+  gboolean in_tile;
 } TakuTile;
 
 typedef struct {

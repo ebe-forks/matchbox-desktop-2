@@ -112,17 +112,39 @@ taku_tile_real_activate (TakuTile *tile)
 }
 
 /*
+ * Callback when mouse enters the tile.
+ */
+static gboolean
+taku_tile_enter_notify (GtkWidget *widget, GdkEventCrossing *event)
+{
+  TakuTile *tile = (TakuTile *)widget;
+  tile->in_tile = TRUE;
+
+  return TRUE;
+}
+
+/*
+ * Callback when mouse leaves the tile.
+ */
+static gboolean
+taku_tile_leave_notify (GtkWidget *widget, GdkEventCrossing *event)
+{
+  TakuTile *tile = (TakuTile *)widget;
+  tile->in_tile = FALSE;
+
+  return TRUE;
+}
+
+/*
  * Callback when a button is released inside the tile.
  */
 static gboolean
 taku_tile_button_release (GtkWidget *widget, GdkEventButton *event)
 {
-  if ((event->button == 1) &&
-      (event->x >= 0) && (event->y >= 0) &&
-      (event->x < widget->allocation.width) &&
-      (event->y < widget->allocation.height)) {
+  TakuTile *tile = (TakuTile *)widget;
+  if ((event->button == 1) && (tile->in_tile)) {
     gtk_widget_grab_focus (widget);
-    taku_tile_clicked (TAKU_TILE (widget));
+    taku_tile_clicked (tile);
   }
   
   return TRUE;
@@ -142,6 +164,8 @@ taku_tile_class_init (TakuTileClass *klass)
 
   widget_class->expose_event = taku_tile_expose;
   widget_class->button_release_event = taku_tile_button_release;
+  widget_class->enter_notify_event = taku_tile_enter_notify;
+  widget_class->leave_notify_event = taku_tile_leave_notify;
 
   klass->activate = taku_tile_real_activate;
 
