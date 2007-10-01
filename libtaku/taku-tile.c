@@ -112,14 +112,15 @@ taku_tile_real_activate (TakuTile *tile)
 }
 
 /*
- * Callback when a button is released inside the tile.  As we're targetting
- * stylus devices we don't need to worry about clicks that started outside the
- * tile just yet, though we should.
+ * Callback when a button is released inside the tile.
  */
 static gboolean
 taku_tile_button_release (GtkWidget *widget, GdkEventButton *event)
 {
-  if (event->button == 1) {
+  if ((event->button == 1) &&
+      (event->x >= 0) && (event->y >= 0) &&
+      (event->x < widget->allocation.width) &&
+      (event->y < widget->allocation.height)) {
     gtk_widget_grab_focus (widget);
     taku_tile_clicked (TAKU_TILE (widget));
   }

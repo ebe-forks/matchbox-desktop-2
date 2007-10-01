@@ -1,3 +1,9 @@
+2007-10-01  Chris Lord  <chris@openedhand.com>
+
+	* libtaku/taku-tile.c: (taku_tile_button_release):
+	Only activate a tile when the mouse cursor is still inside the tile 
+	when the button is released
+
 2007-09-27  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/launcher-util.c:
