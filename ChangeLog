@@ -1,3 +1,11 @@
+2007-10-04  Chris Lord  <chris@openedhand.com>
+
+	* libtaku/taku-icon-tile.c: (taku_icon_tile_finalize),
+	(taku_icon_tile_get_key), (taku_icon_tile_set_primary):
+	* libtaku/taku-table.c: (compare_tiles):
+	Cache a case-less collation key in TakuIconTile and use strcmp in
+	TakuTable to compare keys
+
 2007-10-01  Chris Lord  <chris@openedhand.com>
 
 	* libtaku/taku-tile.c: (taku_tile_enter_notify),

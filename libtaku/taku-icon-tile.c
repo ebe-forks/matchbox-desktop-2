@@ -29,6 +29,7 @@ struct _TakuIconTilePrivate
   GtkWidget *icon;
   GtkWidget *primary;
   GtkWidget *secondary;
+  gchar *collation_key;
 };
 
 /* TODO: properties for the icon and strings */
@@ -63,13 +64,14 @@ taku_icon_tile_dispose (GObject *object)
 static void
 taku_icon_tile_finalize (GObject *object)
 {
+  g_free (TAKU_ICON_TILE (object)->priv->collation_key);
   G_OBJECT_CLASS (taku_icon_tile_parent_class)->finalize (object);
 }
 
 static const char *
 taku_icon_tile_get_key (TakuTile *tile)
 {
-  return taku_icon_tile_get_primary (TAKU_ICON_TILE (tile));
+  return TAKU_ICON_TILE (tile)->priv->collation_key;
 }
 
 static void
@@ -176,6 +178,14 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_label_set_text (GTK_LABEL (tile->priv->primary), text);
+  if (tile->priv->collation_key) g_free (tile->priv->collation_key);
+  if (text) {
+    gchar *text_casefold = g_utf8_casefold (text, -1);
+    tile->priv->collation_key = g_utf8_collate_key (text_casefold, -1);
+    g_free (text_casefold);
+  } else {
+    tile->priv->collation_key = NULL;
+  }
 
   atk_object_set_name (gtk_widget_get_accessible (GTK_WIDGET (tile)), text);
 }

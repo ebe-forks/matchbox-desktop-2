@@ -63,7 +63,7 @@ compare_tiles (gconstpointer a,
   else if (ka == NULL && kb == NULL)
     return 0;
   else
-    return g_utf8_collate (ka, kb);
+    return strcmp (ka, kb);
 }
 
 /* Compare two tiles exactly */
