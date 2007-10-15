@@ -15,7 +15,7 @@ AM_CONDITIONAL(HAVE_INOTIFY, [test "$inotify_support" = "yes"])
 PKG_CHECK_MODULES(GTK, gtk+-2.0)
 
 AC_ARG_ENABLE(startup_notification,
-        AC_HELP_STRING([--enable-startup-notification], [enable startup notification support]),
+        AC_HELP_STRING([--disable-startup-notification], [disable startup notification support]),
         enable_startup_notification=$enableval, enable_startup_notification=yes)
 
 if test x$enable_startup_notification != xno; then

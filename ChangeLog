@@ -1,3 +1,8 @@
+2007-10-15  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	Fix the startup-notification help string to reflect reality.
+
 2007-10-04  Chris Lord  <chris@openedhand.com>
 
 	* libtaku/taku-icon-tile.c: (taku_icon_tile_finalize),
