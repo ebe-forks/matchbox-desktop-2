@@ -1,5 +1,12 @@
 2007-10-15  Ross Burton  <ross@openedhand.com>
 
+	* src/main.c:
+	Handle the workarea properly by positioning the desktop widgets,
+	not the window itself.  On Matchbox the desktop window is
+	fullscreen, do positioning it doens't work.
+
+2007-10-15  Ross Burton  <ross@openedhand.com>
+
 	* configure.ac:
 	Fix the startup-notification help string to reflect reality.
 

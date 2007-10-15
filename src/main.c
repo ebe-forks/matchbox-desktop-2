@@ -425,7 +425,7 @@ int
 main (int argc, char **argv)
 {
   GtkWidget *window, *box, *hbox, *prev_button, *next_button, *popup_button, 
-            *arrow, *scrolled, *viewport;
+    *arrow, *scrolled, *viewport, *fixed;
   GtkSizeGroup *size_group;
   PangoAttribute *attr;
   const char * const *dirs;
@@ -466,20 +466,23 @@ main (int argc, char **argv)
 #ifndef STANDALONE
   gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
   gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
-  if (x_get_workarea (&x, &y, &w, &h)) {
-    gtk_window_set_default_size (GTK_WINDOW (window), w, h);
-    gtk_window_move (GTK_WINDOW (window), x, y);
-  }
+  x_get_workarea (&x, &y, &w, &h);
 #else
   gtk_window_set_default_size (GTK_WINDOW (window), w, h);
 #endif
 
   gtk_widget_show (window);
 
+  /* This fixed is used to position the desktop itself in the work area */
+  fixed = gtk_fixed_new ();
+  gtk_widget_show (fixed);
+  gtk_container_add (GTK_CONTAINER (window), fixed);
+
   /* Main VBox */
   box = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (box);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_widget_set_size_request (box, w, h);
+  gtk_fixed_put (GTK_FIXED (fixed), box, x, y);
 
   /* Navigation bar */
   hbox = gtk_hbox_new (FALSE, 0);
