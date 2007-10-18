@@ -57,14 +57,14 @@ taku_icon_tile_set_property (GObject *object, guint property_id,
 static void
 taku_icon_tile_dispose (GObject *object)
 {
-  if (G_OBJECT_CLASS (taku_icon_tile_parent_class)->dispose)
-    G_OBJECT_CLASS (taku_icon_tile_parent_class)->dispose (object);
+  G_OBJECT_CLASS (taku_icon_tile_parent_class)->dispose (object);
 }
 
 static void
 taku_icon_tile_finalize (GObject *object)
 {
   g_free (TAKU_ICON_TILE (object)->priv->collation_key);
+  
   G_OBJECT_CLASS (taku_icon_tile_parent_class)->finalize (object);
 }
 
@@ -178,7 +178,10 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_label_set_text (GTK_LABEL (tile->priv->primary), text);
-  if (tile->priv->collation_key) g_free (tile->priv->collation_key);
+
+  if (tile->priv->collation_key)
+    g_free (tile->priv->collation_key);
+  
   if (text) {
     gchar *text_casefold = g_utf8_casefold (text, -1);
     tile->priv->collation_key = g_utf8_collate_key (text_casefold, -1);
@@ -187,7 +190,7 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
     tile->priv->collation_key = NULL;
   }
 
-  atk_object_set_name (gtk_widget_get_accessible (GTK_WIDGET (tile)), text);
+  atk_object_set_name (gtk_widget_get_accessible (GTK_WIDGET (tile)), text ?: "");
 }
 
 const char *

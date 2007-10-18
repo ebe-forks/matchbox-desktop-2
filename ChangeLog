@@ -1,3 +1,8 @@
+2007-10-18  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/taku-icon-tile.c:
+	Formatting fixes, and never pass NULL to atk_object_set_name.
+
 2007-10-15  Ross Burton  <ross@openedhand.com>
 
 	* src/main.c:
