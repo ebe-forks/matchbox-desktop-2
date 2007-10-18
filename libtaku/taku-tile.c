@@ -28,38 +28,6 @@ enum {
 };
 static guint signals[LAST_SIGNAL];
 
-static void
-taku_tile_get_property (GObject *object, guint property_id,
-                              GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
-taku_tile_set_property (GObject *object, guint property_id,
-                              const GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
-taku_tile_dispose (GObject *object)
-{
-  G_OBJECT_CLASS (taku_tile_parent_class)->dispose (object);
-}
-
-static void
-taku_tile_finalize (GObject *object)
-{
-  G_OBJECT_CLASS (taku_tile_parent_class)->finalize (object);
-}
-
 static gboolean
 taku_tile_expose (GtkWidget      *widget,
                   GdkEventExpose *event)
@@ -77,13 +45,13 @@ taku_tile_expose (GtkWidget      *widget,
     /* If this isn't isn't being drawn active and it's focused, highlight it */
     if (state != GTK_STATE_ACTIVE && GTK_WIDGET_HAS_FOCUS (widget)) {
       state = GTK_STATE_SELECTED;
-    }
-
-    gtk_paint_flat_box (widget->style, widget->window,
-                        state, GTK_SHADOW_NONE,
-                        &event->area, widget, NULL,
-                        x, y, width, height);
     
+
+      gtk_paint_flat_box (widget->style, widget->window,
+                          state, GTK_SHADOW_NONE,
+                          &event->area, widget, NULL,
+                          x, y, width, height);
+    }
     (* GTK_WIDGET_CLASS (taku_tile_parent_class)->expose_event) (widget, event);
   }
   
@@ -153,14 +121,7 @@ taku_tile_button_release (GtkWidget *widget, GdkEventButton *event)
 static void
 taku_tile_class_init (TakuTileClass *klass)
 {
-  /* TODO: remove useless gobject-fu */
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-  object_class->get_property = taku_tile_get_property;
-  object_class->set_property = taku_tile_set_property;
-  object_class->dispose = taku_tile_dispose;
-  object_class->finalize = taku_tile_finalize;
 
   widget_class->expose_event = taku_tile_expose;
   widget_class->button_release_event = taku_tile_button_release;
@@ -171,7 +132,7 @@ taku_tile_class_init (TakuTileClass *klass)
 
   /* Hook up the activate signal so we get keyboard handling for free */
   signals[ACTIVATE] = g_signal_new ("activate",
-                                    G_OBJECT_CLASS_TYPE (object_class),
+                                    G_TYPE_FROM_CLASS (klass),
                                     G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
                                     G_STRUCT_OFFSET (TakuTileClass, activate),
                                     NULL, NULL,
@@ -180,7 +141,7 @@ taku_tile_class_init (TakuTileClass *klass)
   widget_class->activate_signal = signals[ACTIVATE];
 
   signals[CLICKED] = g_signal_new ("clicked",
-                                    G_OBJECT_CLASS_TYPE (object_class),
+                                    G_TYPE_FROM_CLASS (klass),
                                     G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
                                     G_STRUCT_OFFSET (TakuTileClass, clicked),
                                     NULL, NULL,
@@ -192,7 +153,6 @@ static void
 taku_tile_init (TakuTile *self)
 {
   GTK_WIDGET_SET_FLAGS (GTK_WIDGET (self), GTK_CAN_FOCUS);
-  gtk_widget_set_app_paintable (GTK_WIDGET (self), TRUE);
   gtk_event_box_set_visible_window (GTK_EVENT_BOX (self), FALSE);
   gtk_container_set_border_width (GTK_CONTAINER (self), 6);
 }
