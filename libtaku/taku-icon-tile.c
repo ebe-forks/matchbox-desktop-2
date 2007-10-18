@@ -94,24 +94,25 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
 static void
 make_bold (GtkLabel *label)
 {
-  PangoAttribute *attr;
-  PangoAttrList *list;
+  static PangoAttrList *list = NULL;
 
-  list = pango_attr_list_new ();
+  if (list == NULL) {
+    PangoAttribute *attr;
 
-  attr = pango_attr_weight_new (PANGO_WEIGHT_BOLD);
-  attr->start_index = 0;
-  attr->end_index = G_MAXUINT;
-  pango_attr_list_insert (list, attr);
-
-  attr = pango_attr_scale_new (1.2);
-  attr->start_index = 0;
-  attr->end_index = G_MAXUINT;
-  pango_attr_list_insert (list, attr);
+    list = pango_attr_list_new ();
+    
+    attr = pango_attr_weight_new (PANGO_WEIGHT_BOLD);
+    attr->start_index = 0;
+    attr->end_index = G_MAXUINT;
+    pango_attr_list_insert (list, attr);
+    
+    attr = pango_attr_scale_new (1.2);
+    attr->start_index = 0;
+    attr->end_index = G_MAXUINT;
+    pango_attr_list_insert (list, attr);
+  } 
 
   gtk_label_set_attributes (label, list);
-  
-  pango_attr_list_unref (list);
 }
 
 static void

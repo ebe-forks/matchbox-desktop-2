@@ -1,5 +1,16 @@
 2007-10-18  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-icon-tile.c:
+	Don't recreate Pango attribute lists, use a static list.
+
+2007-10-18  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/taku-tile.c:
+	Remove unused GObject stubs, and only paint the background of the
+	tile is selected.
+
+2007-10-18  Ross Burton  <ross@openedhand.com>
+
 	* src/inotify/*.[ch]:
 	Re-sync with gio r662.
 
