@@ -47,7 +47,8 @@ G_BEGIN_DECLS
 
 typedef struct {
   GtkEventBox parent;
-
+  /*< private >*/
+  /* TODO: move to private struct */
   gboolean in_tile;
 } TakuTile;
 
