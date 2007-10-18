@@ -1,5 +1,10 @@
 2007-10-18  Ross Burton  <ross@openedhand.com>
 
+	* src/inotify/*.[ch]:
+	Re-sync with gio r662.
+
+2007-10-18  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-icon-tile.c:
 	Formatting fixes, and never pass NULL to atk_object_set_name.
 
