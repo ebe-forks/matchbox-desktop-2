@@ -1,3 +1,4 @@
+/* -*- mode: c -*- */
 /* 
  * Copyright (C) 2007 OpenedHand Ltd
  *
@@ -16,28 +17,13 @@
  * Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef HAVE_LAUNCHER_UTIL_H
-#define HAVE_LAUNCHER_UTIL_H
+/* TODO: turn this into a GtkWindow subclass? */
 
-#include <glib.h>
-#include <gtk/gtkicontheme.h>
-#include <gtk/gtkwidget.h>
+#include <string.h>
 
-#include "taku-menu.h"
+#include <gtk/gtk.h>
 
-#define DESKTOP "Desktop Entry"
 
-char **
-exec_to_argv (const char *exec);
+GtkWidget *create_desktop (void);
 
-void 
-launcher_start (GtkWidget *widget, 
-                TakuMenuItem *item, 
-                gchar **argv,
-                gboolean use_sn,
-                gboolean single_instance);
-
-GdkPixbuf*
-get_icon (const gchar *icon_name, gint size);
-
-#endif
+void destroy_desktop (void);

@@ -20,6 +20,7 @@
 #define _TAKU_LAUNCHER_TILE
 
 #include "taku-icon-tile.h"
+#include "taku-menu.h"
 
 G_BEGIN_DECLS
 
@@ -68,12 +69,8 @@ typedef struct {
 GType taku_launcher_tile_get_type (void);
 
 GtkWidget* taku_launcher_tile_new (void);
-
-GtkWidget * taku_launcher_tile_for_desktop_file (const char *filename);
-
-const char * taku_launcher_tile_get_filename (TakuLauncherTile *tile);
-
-const char ** taku_launcher_tile_get_categories (TakuLauncherTile *tile);
+GtkWidget* taku_launcher_tile_new_from_item (TakuMenuItem *item);
+TakuMenuItem* taku_launcher_tile_get_item (TakuLauncherTile *tile);
 
 void taku_launcher_tile_add_group (TakuLauncherTile *tile, TakuLauncherCategory *category);
 

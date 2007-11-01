@@ -1,5 +1,18 @@
 2007-11-01  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/Makefile.am:
+	* libtaku/taku-menu.h:
+	* libtaku/taku-menu-desktop.c:
+	* libtaku/taku-launcher-tile.h:
+	* libtaku/launcher-util.[ch]:
+	* src/Makefile.am:
+	* src/desktop.[ch]:
+	* src/taku-category-bar.[ch]:
+	* src/main.c:
+	Hot new abstracted backend and more widgets.
+
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-icon-tile.c:
 	Add properties for the labels and icon.
 

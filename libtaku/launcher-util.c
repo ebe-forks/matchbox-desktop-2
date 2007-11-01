@@ -33,10 +33,7 @@
 
 /* Convert command line to argv array, stripping % conversions on the way */
 #define MAX_ARGS 255
-
-#define DESKTOP "Desktop Entry"
-
-static char **
+char **
 exec_to_argv (const char *exec)
 {
   const char *p;
@@ -115,103 +112,6 @@ exec_to_argv (const char *exec)
   return argv;
 }
 
-/*
- * Get the boolean for the key @key from @key_file, and if it cannot be parsed
- * or does not exist return @def.
- */
-static gboolean
-get_desktop_boolean (GKeyFile *key_file, const char *key, gboolean def)
-{
-  GError *error = NULL;
-  gboolean b;
-
-  g_assert (key_file);
-  g_assert (key);
-
-  b = g_key_file_get_boolean (key_file, DESKTOP, key, &error);
-  if (error) {
-    g_error_free (error);
-    b = def;
-  }
-
-  return b;
-}
-
-static char *
-get_desktop_string (GKeyFile *key_file, const char *key)
-{
-  char *s;
-
-  g_assert (key_file);
-  g_assert (key);
-
-  /* Get the key */
-  s = g_key_file_get_locale_string (key_file, DESKTOP, key, NULL, NULL);
-  /* Strip any whitespace */
-  s = s ? g_strstrip (s) : NULL;
-  if (s && s[0] != '\0') {
-    return s;
-  } else {
-    if (s) g_free (s);
-    return NULL;
-  }
-}
-
-LauncherData *
-launcher_parse_desktop_file (const char *filename, GError **error)
-{
-  GError *err = NULL;
-  LauncherData *data;
-  GKeyFile *key_file;
-  char *exec, *categories;
-
-  key_file = g_key_file_new ();
-
-  if (!g_key_file_load_from_file (key_file, filename, G_KEY_FILE_NONE, &err)) {
-    g_key_file_free (key_file);
-    g_propagate_error (error, err);
-    return NULL;
-  }
-
-  if (get_desktop_boolean (key_file, "NoDisplay", FALSE)) {
-    g_key_file_free (key_file);
-    return NULL;
-  }
-
-  /* This is the important one, so read it first to simplify cleanup */
-  exec = get_desktop_string (key_file, "Exec");
-  if (exec == NULL) {
-    g_free (exec);
-    g_key_file_free (key_file);
-    return NULL;
-  }
-
-  data = g_slice_new0 (LauncherData);
-  data->argv = exec_to_argv (exec);
-  g_free (exec);
-
-  data->name = get_desktop_string (key_file, "Name");
-
-  data->description = get_desktop_string (key_file, "Comment");
-
-  data->icon = get_desktop_string (key_file, "Icon");
-
-  categories = get_desktop_string (key_file, "Categories");
-  if (categories == NULL)
-    categories = g_strdup ("");
-  data->categories = g_strsplit (categories, ";", -1);
-  g_free (categories);
-
-  data->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
-
-  data->single_instance = get_desktop_boolean (key_file, "X-MB-SingleInstance", FALSE) ||
-    get_desktop_boolean (key_file, "SingleInstance", FALSE);
-
-  g_key_file_free (key_file);
-
-  return data;
-}
-
 /* Strips extension off filename */
 static char *
 strip_extension (const char *file)
@@ -230,52 +130,74 @@ strip_extension (const char *file)
         return stripped;
 }
 
-char *
-launcher_get_icon (GtkIconTheme *icon_theme, LauncherData *data, int size)
+GdkPixbuf*
+get_icon (const gchar *name, gint pixel_size)
 {
-  GtkIconInfo *info;
-  char *new_icon, *stripped;
+  static GtkIconTheme *theme = NULL;
+  GdkPixbuf *pixbuf = NULL;
+  GError *error = NULL;
+  gchar *stripped = NULL;
+  gint width, height;
 
-  if (data->icon == NULL) {
-    return NULL;
+  if (theme == NULL)
+    theme = gtk_icon_theme_get_default ();
+
+  if (name == NULL)
+  {
+    return get_icon ("application-x-executable", pixel_size);
   }
 
-  /* TODO: remove? sync with screen? */  
-  if (icon_theme == NULL) {
-    icon_theme = gtk_icon_theme_get_default();
+  if (g_path_is_absolute (name))
+  {
+    if (g_file_test (name, G_FILE_TEST_EXISTS))
+    {
+      pixbuf = gdk_pixbuf_new_from_file_at_scale (name, pixel_size, pixel_size, 
+                                                  TRUE, &error);
+      if (error)
+      {
+        g_warning ("Error loading icon: %s\n", error->message);
+        g_error_free (error);
+        error = NULL;
+      }
+      return pixbuf;
+    } 
   }
 
-  if (g_path_is_absolute (data->icon)) {
-    if (g_file_test (data->icon, G_FILE_TEST_EXISTS))
-      return g_strdup (data->icon);
-    else
-      new_icon = g_path_get_basename (data->icon);
-  } else
-    new_icon = (char *) data->icon;
+  stripped = strip_extension (name);
   
-  stripped = strip_extension (new_icon);
-  
-  if (new_icon != data->icon)
-    g_free (new_icon);
-  
-  info = gtk_icon_theme_lookup_icon (icon_theme, 
+  pixbuf = gtk_icon_theme_load_icon (theme,
                                      stripped,
-                                     size,
-                                     0);
-  
+                                     pixel_size,
+                                     0, &error);
+  if (error)
+  {   
+    /*g_warning ("Error loading icon: %s\n", error->message);*/
+    g_error_free (error);
+    error = NULL;
+  }
   g_free (stripped);
-  
-  if (info) {
-    char *file;
-    
-    file = g_strdup (gtk_icon_info_get_filename (info));
-    
-    gtk_icon_info_free (info);
-    
-    return file;
-  } else
-    return NULL;
+
+  if (pixbuf == NULL)
+    return get_icon ("application-x-executable", pixel_size);  
+
+ 
+  width = gdk_pixbuf_get_width (pixbuf);
+  height = gdk_pixbuf_get_height (pixbuf);
+
+  if (width != pixel_size || height != pixel_size)
+  {
+    GdkPixbuf *temp = pixbuf;
+    pixbuf = gdk_pixbuf_scale_simple (temp, 
+                                      pixel_size,
+                                      pixel_size,
+                                      GDK_INTERP_HYPER);
+    if (temp)
+      g_object_unref (temp);
+  }
+
+  return pixbuf;
 }
+
 
 static void
 child_setup (gpointer user_data)
@@ -290,7 +212,11 @@ child_setup (gpointer user_data)
 
 /* TODO: optionally link to GtkUnique and directly handle that? */
 void
-launcher_start (GtkWidget *widget, const LauncherData *data)
+launcher_start (GtkWidget *widget, 
+                TakuMenuItem *item, 
+                gchar **argv,
+                gboolean use_sn,
+                gboolean single_instance)
 {
   GError *error = NULL;
 #ifdef USE_LIBSN
@@ -298,13 +224,13 @@ launcher_start (GtkWidget *widget, const LauncherData *data)
 #endif
 
   /* Check for an existing instance if Matchbox single instance */
-  if (data->single_instance) {
+  if (single_instance) {
     Window win_found;
 
-    if (mb_single_instance_is_starting (data->argv[0]))
+    if (mb_single_instance_is_starting (argv[0]))
       return;
 
-    win_found = mb_single_instance_get_window (data->argv[0]);
+    win_found = mb_single_instance_get_window (argv[0]);
     if (win_found != None) {
       x_window_activate (win_found);
 
@@ -315,7 +241,7 @@ launcher_start (GtkWidget *widget, const LauncherData *data)
 #ifdef USE_LIBSN
   context = NULL;
   
-  if (data->use_sn) {
+  if (use_sn) {
     SnDisplay *sn_dpy;
     Display *display;
     int screen;
@@ -327,13 +253,13 @@ launcher_start (GtkWidget *widget, const LauncherData *data)
     context = sn_launcher_context_new (sn_dpy, screen);
     sn_display_unref (sn_dpy);
     
-    sn_launcher_context_set_name (context, data->name);
-    sn_launcher_context_set_binary_name (context, data->argv[0]);
+    sn_launcher_context_set_name (context, taku_menu_item_get_name (item));
+    sn_launcher_context_set_binary_name (context, argv[0]);
     /* TODO: set workspace, steal gedit_utils_get_current_workspace */
     
     sn_launcher_context_initiate (context,
                                   g_get_prgname () ?: "unknown",
-                                  data->argv[0],
+                                  argv[0],
                                   gtk_get_current_event_time ());
   }
 #endif
@@ -344,17 +270,17 @@ launcher_start (GtkWidget *widget, const LauncherData *data)
 #else
   if (!g_spawn_async (
 #endif
-                            NULL, data->argv, NULL,
+                            NULL, argv, NULL,
                             G_SPAWN_SEARCH_PATH,
                             child_setup,
 #ifdef USE_LIBSN
-                            data->use_sn ? context : NULL,
+                            use_sn ? context : NULL,
 #else
                             NULL,
 #endif
                             NULL,
                             &error)) {
-    g_warning ("Cannot launch %s: %s", data->argv[0], error->message);
+    g_warning ("Cannot launch %s: %s", argv[0], error->message);
     g_error_free (error);
 #ifdef USE_LIBSN
     if (context)
@@ -363,20 +289,8 @@ launcher_start (GtkWidget *widget, const LauncherData *data)
   }
   
 #ifdef USE_LIBSN
-  if (data->use_sn)
+  if (use_sn)
     sn_launcher_context_unref (context);
 #endif
 }
 
-void
-launcher_destroy (LauncherData *data)
-{
-  g_return_if_fail (data);
-  
-  g_free (data->name);
-  g_free (data->description);
-  g_free (data->icon);
-  g_strfreev (data->categories);
-  g_strfreev (data->argv);
-  g_slice_free (LauncherData, data);
-}

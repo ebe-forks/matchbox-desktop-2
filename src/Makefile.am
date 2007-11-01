@@ -1,12 +1,14 @@
-bin_PROGRAMS = matchbox-desktop
-
-PKGDATADIR = $(datadir)/matchbox
-
-AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
+AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS) -I$(top_srcdir)
 AM_CFLAGS = -Wall
-LDADD = $(GTK_LIBS) $(SN_LIBS) $(top_builddir)/libtaku/libtaku.a
-if HAVE_INOTIFY
-LDADD += $(top_builddir)/libtaku/libinotify.a
-endif
 
-matchbox_desktop_SOURCES = main.c
+bin_PROGRAMS = matchbox-desktop
+matchbox_desktop_SOURCES = \
+	main.c \
+	taku-category-bar.c taku-category-bar.h \
+	desktop.c desktop.h
+
+matchbox_desktop_LDADD = \
+	$(GTK_LIBS) \
+	$(SN_LIBS) \
+	$(top_builddir)/libtaku/libtaku.a \
+	$(top_builddir)/libtaku/libinotify.a

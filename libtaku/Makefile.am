@@ -1,4 +1,6 @@
-AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS)
+PKGDATADIR = $(datadir)/matchbox
+
+AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
 AM_CFLAGS = -Wall
 LDADD = $(GTK_LIBS) $(SN_LIBS)
 
@@ -8,6 +10,8 @@ libtaku_a_SOURCES = \
 	launcher-util.c launcher-util.h \
 	taku-icon-tile.c taku-icon-tile.h \
 	taku-launcher-tile.c taku-launcher-tile.h \
+	taku-menu.h \
+	taku-menu-desktop.c \
 	taku-table.c taku-table.h \
 	taku-tile.c taku-tile.h \
 	xutil.c xutil.h
