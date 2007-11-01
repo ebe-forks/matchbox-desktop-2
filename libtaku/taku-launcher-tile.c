@@ -32,36 +32,20 @@ struct _TakuLauncherTilePrivate
 {
   char *filename;
   GList *groups;
-  LauncherData *data;
+  TakuMenuItem *item;
 };
 
 static void
 update_icon (TakuLauncherTile *tile)
 {
-  GError *error = NULL;
-  int size = 64; /* Default icon size */
-  char *filename;
-  GdkPixbuf *pixbuf;
+  TakuLauncherTilePrivate *priv;
 
-  gtk_icon_size_lookup (icon_size, &size, NULL);
-    
-  filename = launcher_get_icon (NULL, tile->priv->data, size);
-  if (filename) {
-    pixbuf =  gdk_pixbuf_new_from_file_at_size (filename, size, size, &error);
-    if (pixbuf) {
-      taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
-      g_object_unref (pixbuf);
-    } else {
-      g_warning ("Cannot set icon: %s", error->message);
-      g_error_free (error);
-      taku_icon_tile_set_icon_name (TAKU_ICON_TILE (tile),
-                                    "application-x-executable");
-    }
-    g_free (filename);
-  } else {
-    taku_icon_tile_set_icon_name (TAKU_ICON_TILE (tile),
-                                  "application-x-executable");
-  }
+  g_return_if_fail (TAKU_IS_LAUNCHER_TILE (tile));
+  priv = tile->priv;
+
+  if (priv->item)
+    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), 
+                               taku_menu_item_get_icon (priv->item, (GtkWidget*)tile, icon_size));
 } 
 
 static void
@@ -109,7 +93,7 @@ taku_launcher_tile_clicked (TakuTile *tile)
 
   g_timeout_add (500, reset_state, tile);
   
-  launcher_start (GTK_WIDGET (tile), launcher->priv->data);
+  taku_menu_item_launch (launcher->priv->item, GTK_WIDGET (tile));
 }
 
 static gboolean
@@ -149,70 +133,41 @@ taku_launcher_tile_init (TakuLauncherTile *self)
   self->priv = GET_PRIVATE (self);
 }
 
-static void
-set_launcher_data (TakuLauncherTile *tile, LauncherData *data)
-{
-  g_assert (tile);
-  g_assert (data);
-
-  if (tile->priv->data) {
-    launcher_destroy (tile->priv->data);
-    /* Reset the widgets */
-    taku_icon_tile_set_primary (TAKU_ICON_TILE (tile), NULL);
-    taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile), NULL);
-    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), NULL);
-  }
-
-  tile->priv->data = data;
-
-  if (tile->priv->data) {
-    taku_icon_tile_set_primary (TAKU_ICON_TILE (tile), tile->priv->data->name);
-    taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile), tile->priv->data->description);
-    
-    if (GTK_WIDGET_REALIZED (tile))
-      update_icon (tile);
-  }
-}
-
 GtkWidget *
 taku_launcher_tile_new ()
 {
   return g_object_new (TAKU_TYPE_LAUNCHER_TILE, NULL);
 }
 
-GtkWidget *
-taku_launcher_tile_for_desktop_file (const char *filename)
+GtkWidget* 
+taku_launcher_tile_new_from_item (TakuMenuItem *item)
 {
-  LauncherData *data;
   TakuLauncherTile *tile;
+  GList *l;
 
-  g_return_val_if_fail (filename, NULL);
+  tile = TAKU_LAUNCHER_TILE (taku_launcher_tile_new ());
+  tile->priv->item = item;
   
-  data = launcher_parse_desktop_file (filename, NULL);
-  if (data == NULL) {
-    return NULL;
+  taku_icon_tile_set_primary (TAKU_ICON_TILE (tile), 
+                              taku_menu_item_get_name (item));
+  taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile),
+                                taku_menu_item_get_description (item));
+  update_icon (TAKU_LAUNCHER_TILE (tile));
+
+  for (l = taku_menu_item_get_categories (item); l; l = l->next) {
+    taku_launcher_tile_add_group (tile, l->data);
   }
 
-  tile = (TakuLauncherTile*) taku_launcher_tile_new ();
-  set_launcher_data (tile, data);
-  tile->priv->filename = g_strdup (filename);
-  return (GtkWidget*) tile;
+
+  return GTK_WIDGET (tile);
 }
 
-const char *
-taku_launcher_tile_get_filename (TakuLauncherTile *tile)
+TakuMenuItem* 
+taku_launcher_tile_get_item (TakuLauncherTile *tile)
 {
   g_return_val_if_fail (TAKU_IS_LAUNCHER_TILE (tile), NULL);
-  
-  return tile->priv->filename;
-}
 
-const char **
-taku_launcher_tile_get_categories (TakuLauncherTile *tile)
-{
-  g_return_val_if_fail (TAKU_IS_LAUNCHER_TILE (tile), NULL);
-  
-  return (const char **) tile->priv->data->categories;
+  return tile->priv->item;
 }
 
 void

@@ -1,5 +1,10 @@
 2007-11-01  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-launcher-tile.c:
+	Not sure how this got missed in the previous commit.
+
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/Makefile.am:
 	* libtaku/taku-menu.h:
 	* libtaku/taku-menu-desktop.c:
