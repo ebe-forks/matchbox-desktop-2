@@ -64,9 +64,11 @@ taku_launcher_tile_finalize (GObject *object)
 {
   TakuLauncherTile *tile = TAKU_LAUNCHER_TILE (object);
 
+  /* TODO
   if (tile->priv->data) {
     launcher_destroy (tile->priv->data);
   }
+  */
 
   g_free (tile->priv->filename);
 
