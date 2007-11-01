@@ -76,33 +76,6 @@ taku_launcher_tile_style_set (GtkWidget *widget,
 /* TODO: properties for the launcher and strings */
 
 static void
-taku_launcher_tile_get_property (GObject *object, guint property_id,
-                                 GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
-taku_launcher_tile_set_property (GObject *object, guint property_id,
-                                 const GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
-taku_launcher_tile_dispose (GObject *object)
-{
-  if (G_OBJECT_CLASS (taku_launcher_tile_parent_class)->dispose)
-    G_OBJECT_CLASS (taku_launcher_tile_parent_class)->dispose (object);
-}
-
-static void
 taku_launcher_tile_finalize (GObject *object)
 {
   TakuLauncherTile *tile = TAKU_LAUNCHER_TILE (object);
@@ -159,9 +132,6 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
 
   widget_class->style_set = taku_launcher_tile_style_set;
 
-  object_class->get_property = taku_launcher_tile_get_property;
-  object_class->set_property = taku_launcher_tile_set_property;
-  object_class->dispose = taku_launcher_tile_dispose;
   object_class->finalize = taku_launcher_tile_finalize;
   
   /* Lookup the icon size from the theme. */

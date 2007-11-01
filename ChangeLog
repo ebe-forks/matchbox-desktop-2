@@ -1,5 +1,11 @@
 2007-11-01  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-launcher-tile.c:
+	* libtaku/taku-table.c:
+	Remove unused boilerplate.
+	
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/Makefile.am:
 	Remove accidentaly copied line.
 

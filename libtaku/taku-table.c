@@ -444,26 +444,6 @@ taku_table_grab_focus (GtkWidget *widget)
 }
 
 static void
-taku_table_get_property (GObject *object, guint property_id,
-                         GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
-taku_table_set_property (GObject *object, guint property_id,
-                         const GValue *value, GParamSpec *pspec)
-{
-  switch (property_id) {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-  }
-}
-
-static void
 taku_table_finalize (GObject *object)
 {
   TakuTable *table = TAKU_TABLE (object);
@@ -486,8 +466,6 @@ taku_table_class_init (TakuTableClass *klass)
 
   g_type_class_add_private (klass, sizeof (TakuTablePrivate));
 
-  object_class->get_property = taku_table_get_property;
-  object_class->set_property = taku_table_set_property;
   object_class->finalize     = taku_table_finalize;
   
   widget_class->realize         = taku_table_realize;
