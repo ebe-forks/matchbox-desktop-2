@@ -1,5 +1,10 @@
 2007-11-01  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-icon-tile.c:
+	Add properties for the labels and icon.
+
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-launcher-tile.c:
 	* libtaku/taku-table.c:
 	Remove unused boilerplate.

@@ -32,13 +32,30 @@ struct _TakuIconTilePrivate
   gchar *collation_key;
 };
 
-/* TODO: properties for the icon and strings */
+enum {
+  PROP_0,
+  PROP_PIXBUF,
+  PROP_PRIMARY,
+  PROP_SECONDARY,
+};
 
 static void
 taku_icon_tile_get_property (GObject *object, guint property_id,
                               GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
+  case PROP_PIXBUF:
+    {
+      TakuIconTilePrivate *priv = GET_PRIVATE (object);
+      g_value_set_object (value, gtk_image_get_pixbuf (GTK_IMAGE (priv->icon)));
+    }
+    break;
+  case PROP_PRIMARY:
+    g_value_set_string (value, taku_icon_tile_get_primary (TAKU_ICON_TILE (object)));
+    break;
+  case PROP_SECONDARY:
+    g_value_set_string (value, taku_icon_tile_get_secondary (TAKU_ICON_TILE (object)));
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
@@ -49,15 +66,21 @@ taku_icon_tile_set_property (GObject *object, guint property_id,
                               const GValue *value, GParamSpec *pspec)
 {
   switch (property_id) {
+  case PROP_PIXBUF:
+    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (object),
+                               g_value_get_object (value));
+    break;
+  case PROP_PRIMARY:
+    taku_icon_tile_set_primary (TAKU_ICON_TILE (object),
+                                g_value_get_string (value));
+    break;
+  case PROP_SECONDARY:
+    taku_icon_tile_set_secondary (TAKU_ICON_TILE (object),
+                                  g_value_get_string (value));
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
-}
-
-static void
-taku_icon_tile_dispose (GObject *object)
-{
-  G_OBJECT_CLASS (taku_icon_tile_parent_class)->dispose (object);
 }
 
 static void
@@ -84,11 +107,28 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
 
   object_class->get_property = taku_icon_tile_get_property;
   object_class->set_property = taku_icon_tile_set_property;
-  object_class->dispose = taku_icon_tile_dispose;
   object_class->finalize = taku_icon_tile_finalize;
 
   tile_class->get_sort_key = taku_icon_tile_get_key;
   tile_class->get_search_key = taku_icon_tile_get_key;
+
+  g_object_class_install_property (object_class, PROP_PIXBUF,
+                                   g_param_spec_object ("pixbuf", "pixbuf",
+                                                        "The pixbuf",
+                                                        GDK_TYPE_PIXBUF,
+                                                        G_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class, PROP_PRIMARY,
+                                   g_param_spec_string ("primary", "primary",
+                                                        "The primary string",
+                                                        "",
+                                                        G_PARAM_READWRITE));
+
+  g_object_class_install_property (object_class, PROP_SECONDARY,
+                                   g_param_spec_string ("secondary", "secondary",
+                                                        "The secondary string",
+                                                        "",
+                                                        G_PARAM_READWRITE));
 }
 
 static void
@@ -162,6 +202,8 @@ taku_icon_tile_set_pixbuf (TakuIconTile *tile, GdkPixbuf *pixbuf)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_image_set_from_pixbuf (GTK_IMAGE (tile->priv->icon), pixbuf);
+
+  g_object_notify (G_OBJECT (tile), "pixbuf");
 }
 
 void
@@ -192,6 +234,8 @@ taku_icon_tile_set_primary (TakuIconTile *tile, const char *text)
   }
 
   atk_object_set_name (gtk_widget_get_accessible (GTK_WIDGET (tile)), text ?: "");
+
+  g_object_notify (G_OBJECT (tile), "primary");
 }
 
 const char *
@@ -206,6 +250,8 @@ taku_icon_tile_set_secondary (TakuIconTile *tile, const char *text)
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
   gtk_label_set_text (GTK_LABEL (tile->priv->secondary), text);
+
+  g_object_notify (G_OBJECT (tile), "secondary");
 }
 
 const char *
