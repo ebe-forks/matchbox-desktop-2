@@ -1,3 +1,15 @@
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	* src/inotify/:
+	* src/Makefile.am:
+	* libtaku/inotify/:
+	* libtaku/Makefile.am:
+	Move the inotify code to libtaku/.
+	
+	* src/main.c:
+	Update includes.
+
 2007-10-18  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/taku-icon-tile.c:
