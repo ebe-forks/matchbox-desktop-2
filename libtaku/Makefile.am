@@ -12,7 +12,6 @@ libtaku_a_SOURCES = \
 	taku-tile.c taku-tile.h \
 	xutil.c xutil.h
 
-# Optional inotify support
 if HAVE_INOTIFY
 noinst_LIBRARIES += libinotify.a
 libinotify_a_SOURCES = \
