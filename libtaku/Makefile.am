@@ -14,8 +14,6 @@ libtaku_a_SOURCES = \
 
 # Optional inotify support
 if HAVE_INOTIFY
-LDADD += libinotify.a
-
 noinst_LIBRARIES += libinotify.a
 libinotify_a_SOURCES = \
 	inotify/inotify-kernel.c inotify/inotify-kernel.h \

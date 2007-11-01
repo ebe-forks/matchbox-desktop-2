@@ -1,5 +1,10 @@
 2007-11-01  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/Makefile.am:
+	Remove accidentaly copied line.
+
+2007-11-01  Ross Burton  <ross@openedhand.com>
+
 	* configure.ac:
 	* src/inotify/:
 	* src/Makefile.am:
