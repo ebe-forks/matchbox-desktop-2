@@ -19,7 +19,9 @@ style "desktop"
   bg[SELECTED] = "#00A000"
   fg[SELECTED] = "#FFFFFF"
 
-  # The width in characters of the tiles.  The default is 30.
+  # The width in characters of the tiles (default is 30)
   TakuTable::cell-text-width = 30
+  # Whether or not to show the secondary text (default is 1)
+  TakuIconTile::show-secondary-text = 1
 }
 widget "TakuWindow.*" style "desktop"

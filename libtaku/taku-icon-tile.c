@@ -40,6 +40,23 @@ enum {
 };
 
 static void
+tile_arrange (TakuIconTile *tile)
+{
+  gboolean show_secondary = TRUE;
+
+  gtk_widget_style_get (GTK_WIDGET (tile),
+                        "show-secondary-text", &show_secondary,
+                        NULL);
+  g_debug ("got %d for secondary text", show_secondary);
+
+  if (show_secondary) {
+    gtk_widget_show (tile->priv->secondary);
+  } else {
+    gtk_widget_hide (tile->priv->secondary);
+  }
+}
+
+static void
 taku_icon_tile_get_property (GObject *object, guint property_id,
                               GValue *value, GParamSpec *pspec)
 {
@@ -91,6 +108,14 @@ taku_icon_tile_finalize (GObject *object)
   G_OBJECT_CLASS (taku_icon_tile_parent_class)->finalize (object);
 }
 
+static void
+taku_icon_tile_style_set (GtkWidget *widget, GtkStyle *previous)
+{
+  tile_arrange (TAKU_ICON_TILE (widget));
+
+  GTK_WIDGET_CLASS (taku_icon_tile_parent_class)->style_set (widget, previous);
+}
+
 static const char *
 taku_icon_tile_get_key (TakuTile *tile)
 {
@@ -101,6 +126,7 @@ static void
 taku_icon_tile_class_init (TakuIconTileClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   TakuTileClass *tile_class = TAKU_TILE_CLASS (klass);
 
   g_type_class_add_private (klass, sizeof (TakuIconTilePrivate));
@@ -108,6 +134,8 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
   object_class->get_property = taku_icon_tile_get_property;
   object_class->set_property = taku_icon_tile_set_property;
   object_class->finalize = taku_icon_tile_finalize;
+
+  widget_class->style_set = taku_icon_tile_style_set;
 
   tile_class->get_sort_key = taku_icon_tile_get_key;
   tile_class->get_search_key = taku_icon_tile_get_key;
@@ -129,6 +157,13 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
                                                         "The secondary string",
                                                         "",
                                                         G_PARAM_READWRITE));
+
+  gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_boolean ("show-secondary-text",
+                                                                 "show secondary text",
+                                                                 "show secondary text",
+                                                                 TRUE,
+                                                                 G_PARAM_READABLE));
 }
 
 static void
@@ -162,26 +197,30 @@ taku_icon_tile_init (TakuIconTile *self)
 
   self->priv = GET_PRIVATE (self);
 
-  hbox = gtk_hbox_new (FALSE, 6);
-  gtk_widget_show (hbox);
-
   self->priv->icon = gtk_image_new ();
   gtk_widget_show (self->priv->icon);
-  gtk_box_pack_start (GTK_BOX (hbox), self->priv->icon, FALSE, FALSE, 0);
-
-  vbox = gtk_vbox_new (FALSE, 6);
-  gtk_widget_show (vbox);
 
   self->priv->primary = gtk_label_new (NULL);
   gtk_label_set_ellipsize (GTK_LABEL (self->priv->primary), PANGO_ELLIPSIZE_END);
   make_bold (GTK_LABEL (self->priv->primary));
   gtk_widget_show (self->priv->primary);
-  gtk_misc_set_alignment (GTK_MISC (self->priv->primary), 0.0, 0.5);
-  gtk_box_pack_start (GTK_BOX (vbox), self->priv->primary, TRUE, TRUE, 0);
 
   self->priv->secondary = gtk_label_new (NULL);
   gtk_label_set_ellipsize (GTK_LABEL (self->priv->secondary), PANGO_ELLIPSIZE_END);
   gtk_widget_show (self->priv->secondary);
+
+  /* TODO: move to arrange */
+  hbox = gtk_hbox_new (FALSE, 6);
+  gtk_widget_show (hbox);
+
+  gtk_box_pack_start (GTK_BOX (hbox), self->priv->icon, FALSE, FALSE, 0);
+
+  vbox = gtk_vbox_new (FALSE, 6);
+  gtk_widget_show (vbox);
+
+  gtk_misc_set_alignment (GTK_MISC (self->priv->primary), 0.0, 0.5);
+  gtk_box_pack_start (GTK_BOX (vbox), self->priv->primary, TRUE, TRUE, 0);
+
   gtk_misc_set_alignment (GTK_MISC (self->priv->secondary), 0.0, 0.5);
   gtk_box_pack_start (GTK_BOX (vbox), self->priv->secondary, TRUE, TRUE, 0);
 
