@@ -144,7 +144,7 @@ get_icon (const gchar *name, gint pixel_size)
 
   if (name == NULL)
   {
-    return get_icon ("application-x-executable", pixel_size);
+    return get_icon ("gtk-missing-image", pixel_size);
   }
 
   if (g_path_is_absolute (name))
@@ -177,8 +177,12 @@ get_icon (const gchar *name, gint pixel_size)
   }
   g_free (stripped);
 
-  if (pixbuf == NULL)
-    return get_icon ("application-x-executable", pixel_size);  
+  if (pixbuf == NULL) {
+    if (strcmp (name, "gtk-missing-image") == 0)
+      return NULL;
+    else
+      return get_icon ("gtk-missing-image", pixel_size);  
+  }
 
  
   width = gdk_pixbuf_get_width (pixbuf);

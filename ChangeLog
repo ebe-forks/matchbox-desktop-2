@@ -1,3 +1,10 @@
+2007-11-02  Chris Lord  <chris@openedhand.com>
+
+	* libtaku/launcher-util.c: (get_icon):
+	Use "gtk-missing-image" instead of "application-x-executable", as the 
+	former is a stock icon. Also, don't go into an infinite loop if it 
+	doesn't exist for whatever reason
+
 2007-11-02  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/taku-icon-tile.c:
