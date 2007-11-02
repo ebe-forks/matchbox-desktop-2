@@ -23,5 +23,7 @@ style "desktop"
   TakuTable::cell-text-width = 30
   # Whether or not to show the secondary text (default is 1)
   TakuIconTile::show-secondary-text = 1
+  # Should the tile be arranged horizonally or vertically (default is horizonal)
+  TakuIconTile::orientation = horizontal
 }
 widget "TakuWindow.*" style "desktop"

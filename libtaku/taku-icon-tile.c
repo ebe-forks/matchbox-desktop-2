@@ -30,6 +30,7 @@ struct _TakuIconTilePrivate
   GtkWidget *primary;
   GtkWidget *secondary;
   gchar *collation_key;
+  GtkOrientation orientation;
 };
 
 enum {
@@ -42,13 +43,53 @@ enum {
 static void
 tile_arrange (TakuIconTile *tile)
 {
+  GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
   gboolean show_secondary = TRUE;
-
+  
   gtk_widget_style_get (GTK_WIDGET (tile),
                         "show-secondary-text", &show_secondary,
+                        "orientation", &orientation,
                         NULL);
-  g_debug ("got %d for secondary text", show_secondary);
+  
+  if (orientation != tile->priv->orientation) {
+    GtkWidget *box, *vbox;
+    if (tile->priv->orientation != -1) {
+      gtk_widget_destroy (gtk_bin_get_child (GTK_BIN (tile)));
+    }
+    
+    tile->priv->orientation = orientation;
+    gtk_widget_show (tile->priv->icon);
+    gtk_widget_show (tile->priv->primary);
+    
+    switch (orientation) {
+    case GTK_ORIENTATION_VERTICAL :
+      gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.5, 0.5);
+      gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.5, 0.5);
+      box = gtk_vbox_new (FALSE, 6);
+      break;
+    default:
+    case GTK_ORIENTATION_HORIZONTAL :
+      gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.0, 0.5);
+      gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.0, 0.5);
+      box = gtk_hbox_new (FALSE, 6);
+      break;
+    }
+    
+    gtk_widget_show (box);
+    
+    gtk_box_pack_start (GTK_BOX (box), tile->priv->icon, FALSE, FALSE, 0);
+    
+    vbox = gtk_vbox_new (FALSE, 6);
+    gtk_widget_show (vbox);
 
+    gtk_box_pack_start (GTK_BOX (vbox), tile->priv->primary, TRUE, TRUE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox), tile->priv->secondary, TRUE, TRUE, 0);
+    
+    gtk_box_pack_start (GTK_BOX (box), vbox, TRUE, TRUE, 0);
+    
+    gtk_container_add (GTK_CONTAINER (tile), box);
+  }
+  
   if (show_secondary) {
     gtk_widget_show (tile->priv->secondary);
   } else {
@@ -123,6 +164,29 @@ taku_icon_tile_get_key (TakuTile *tile)
 }
 
 static void
+taku_icon_tile_dispose (GObject *object)
+{
+  TakuIconTilePrivate *priv = GET_PRIVATE (object);
+
+  if (priv->icon) {
+    g_object_unref (priv->icon);
+    priv->icon = NULL;
+  }
+
+  if (priv->primary) {
+    g_object_unref (priv->primary);
+    priv->primary = NULL;
+  }
+
+  if (priv->secondary) {
+    g_object_unref (priv->secondary);
+    priv->secondary = NULL;
+  }
+
+  G_OBJECT_CLASS (taku_icon_tile_parent_class)->dispose (object);
+}
+
+static void
 taku_icon_tile_class_init (TakuIconTileClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -133,6 +197,7 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
 
   object_class->get_property = taku_icon_tile_get_property;
   object_class->set_property = taku_icon_tile_set_property;
+  object_class->dispose = taku_icon_tile_dispose;
   object_class->finalize = taku_icon_tile_finalize;
 
   widget_class->style_set = taku_icon_tile_style_set;
@@ -164,6 +229,14 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
                                                                  "show secondary text",
                                                                  TRUE,
                                                                  G_PARAM_READABLE));
+
+  gtk_widget_class_install_style_property (widget_class,
+					   g_param_spec_enum ("orientation",
+							      "orientation",
+							      "The orientation of the tile layout",
+							      GTK_TYPE_ORIENTATION,
+							      GTK_ORIENTATION_HORIZONTAL,
+							      G_PARAM_READABLE));
 }
 
 static void
@@ -193,40 +266,24 @@ make_bold (GtkLabel *label)
 static void
 taku_icon_tile_init (TakuIconTile *self)
 {
-  GtkWidget *vbox, *hbox;
-
   self->priv = GET_PRIVATE (self);
 
   self->priv->icon = gtk_image_new ();
   gtk_widget_show (self->priv->icon);
+  g_object_ref (self->priv->icon);
 
   self->priv->primary = gtk_label_new (NULL);
   gtk_label_set_ellipsize (GTK_LABEL (self->priv->primary), PANGO_ELLIPSIZE_END);
   make_bold (GTK_LABEL (self->priv->primary));
   gtk_widget_show (self->priv->primary);
+  g_object_ref (self->priv->primary);
 
   self->priv->secondary = gtk_label_new (NULL);
   gtk_label_set_ellipsize (GTK_LABEL (self->priv->secondary), PANGO_ELLIPSIZE_END);
   gtk_widget_show (self->priv->secondary);
+  g_object_ref (self->priv->secondary);
 
-  /* TODO: move to arrange */
-  hbox = gtk_hbox_new (FALSE, 6);
-  gtk_widget_show (hbox);
-
-  gtk_box_pack_start (GTK_BOX (hbox), self->priv->icon, FALSE, FALSE, 0);
-
-  vbox = gtk_vbox_new (FALSE, 6);
-  gtk_widget_show (vbox);
-
-  gtk_misc_set_alignment (GTK_MISC (self->priv->primary), 0.0, 0.5);
-  gtk_box_pack_start (GTK_BOX (vbox), self->priv->primary, TRUE, TRUE, 0);
-
-  gtk_misc_set_alignment (GTK_MISC (self->priv->secondary), 0.0, 0.5);
-  gtk_box_pack_start (GTK_BOX (vbox), self->priv->secondary, TRUE, TRUE, 0);
-
-  gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
-
-  gtk_container_add (GTK_CONTAINER (self), hbox);
+  self->priv->orientation = -1;
 }
 
 GtkWidget *

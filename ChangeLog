@@ -2,6 +2,13 @@
 
 	* libtaku/taku-icon-tile.c:
 	* README:
+	Add orientation style property.  Thanks to Chris Lord for the
+	patch, based on work by Don Mahurin.
+
+2007-11-02  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/taku-icon-tile.c:
+	* README:
 	Add show-secondary-text style property. Thanks to Don Mahurin for
 	the patch this is based on.
 
