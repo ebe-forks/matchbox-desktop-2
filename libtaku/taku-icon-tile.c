@@ -231,12 +231,12 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
                                                                  G_PARAM_READABLE));
 
   gtk_widget_class_install_style_property (widget_class,
-					   g_param_spec_enum ("orientation",
-							      "orientation",
-							      "The orientation of the tile layout",
-							      GTK_TYPE_ORIENTATION,
-							      GTK_ORIENTATION_HORIZONTAL,
-							      G_PARAM_READABLE));
+                                           g_param_spec_enum ("orientation",
+                                                              "orientation",
+                                                              "The orientation of the tile layout",
+                                                              GTK_TYPE_ORIENTATION,
+                                                              GTK_ORIENTATION_HORIZONTAL,
+                                                              G_PARAM_READABLE));
 }
 
 static void
