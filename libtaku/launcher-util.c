@@ -144,25 +144,19 @@ get_icon (const gchar *name, gint pixel_size)
   if (G_UNLIKELY (theme == NULL))
     theme = gtk_icon_theme_get_default ();
 
-  if (name == NULL)
-  {
+  if (name == NULL) {
     return get_icon (MISSING_IMAGE, pixel_size);
   }
 
-  if (g_path_is_absolute (name))
-  {
-    if (g_file_test (name, G_FILE_TEST_EXISTS))
-    {
-      pixbuf = gdk_pixbuf_new_from_file_at_scale (name, pixel_size, pixel_size, 
-                                                  TRUE, &error);
-      if (error)
-      {
-        g_warning ("Error loading icon: %s\n", error->message);
-        g_error_free (error);
-        error = NULL;
-      }
-      return pixbuf;
-    } 
+  if (g_path_is_absolute (name)) {
+    pixbuf = gdk_pixbuf_new_from_file_at_scale (name, pixel_size, pixel_size,
+                                                TRUE, &error);
+    if (error) {
+      g_warning ("Error loading icon: %s", error->message);
+      g_error_free (error);
+      error = NULL;
+    }
+    return pixbuf;
   }
 
   stripped = strip_extension (name);
@@ -171,9 +165,8 @@ get_icon (const gchar *name, gint pixel_size)
                                      stripped,
                                      pixel_size,
                                      0, &error);
-  if (error)
-  {   
-    /*g_warning ("Error loading icon: %s\n", error->message);*/
+  if (error) {
+    g_warning ("Error loading icon: %s", error->message);
     g_error_free (error);
     error = NULL;
   }
@@ -190,15 +183,15 @@ get_icon (const gchar *name, gint pixel_size)
   width = gdk_pixbuf_get_width (pixbuf);
   height = gdk_pixbuf_get_height (pixbuf);
 
-  if (width != pixel_size || height != pixel_size)
-  {
-    GdkPixbuf *temp = pixbuf;
-    pixbuf = gdk_pixbuf_scale_simple (temp, 
-                                      pixel_size,
-                                      pixel_size,
-                                      GDK_INTERP_HYPER);
-    if (temp)
-      g_object_unref (temp);
+  if (width != pixel_size || height != pixel_size) {
+    GdkPixbuf *new;
+    
+    new = gdk_pixbuf_scale_simple (pixbuf,
+                                   pixel_size, pixel_size,
+                                   GDK_INTERP_BILINEAR);
+    
+    g_object_unref (pixbuf);
+    pixbuf = new;
   }
 
   return pixbuf;

@@ -1,6 +1,11 @@
 2007-11-06  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/launcher-util.c:
+	Fix formatting and clean up the icon loading code.
+
+2007-11-06  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/launcher-util.c:
 	Use a define for the missing image, and micro-optimise for the
 	hell of it.
 
