@@ -152,9 +152,9 @@ taku_icon_tile_finalize (GObject *object)
 static void
 taku_icon_tile_style_set (GtkWidget *widget, GtkStyle *previous)
 {
-  tile_arrange (TAKU_ICON_TILE (widget));
-
   GTK_WIDGET_CLASS (taku_icon_tile_parent_class)->style_set (widget, previous);
+
+  tile_arrange (TAKU_ICON_TILE (widget));
 }
 
 static const char *
