@@ -50,9 +50,9 @@ update_icon (TakuLauncherTile *tile)
 
 static void
 taku_launcher_tile_style_set (GtkWidget *widget,
-                              GtkStyle  *style)
+                              GtkStyle  *previous_style)
 {
-  GTK_WIDGET_CLASS (taku_launcher_tile_parent_class)->style_set (widget, style);
+  GTK_WIDGET_CLASS (taku_launcher_tile_parent_class)->style_set (widget, previous_style);
 
   update_icon (TAKU_LAUNCHER_TILE (widget));
 }
