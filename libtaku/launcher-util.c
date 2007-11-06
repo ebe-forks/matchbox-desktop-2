@@ -130,6 +130,8 @@ strip_extension (const char *file)
         return stripped;
 }
 
+#define MISSING_IMAGE "gtk-missing-image"
+
 GdkPixbuf*
 get_icon (const gchar *name, gint pixel_size)
 {
@@ -139,12 +141,12 @@ get_icon (const gchar *name, gint pixel_size)
   gchar *stripped = NULL;
   gint width, height;
 
-  if (theme == NULL)
+  if (G_UNLIKELY (theme == NULL))
     theme = gtk_icon_theme_get_default ();
 
   if (name == NULL)
   {
-    return get_icon ("gtk-missing-image", pixel_size);
+    return get_icon (MISSING_IMAGE, pixel_size);
   }
 
   if (g_path_is_absolute (name))
@@ -178,10 +180,10 @@ get_icon (const gchar *name, gint pixel_size)
   g_free (stripped);
 
   if (pixbuf == NULL) {
-    if (strcmp (name, "gtk-missing-image") == 0)
+    if (strcmp (name, MISSING_IMAGE) == 0)
       return NULL;
     else
-      return get_icon ("gtk-missing-image", pixel_size);  
+      return get_icon (MISSING_IMAGE, pixel_size);  
   }
 
  
