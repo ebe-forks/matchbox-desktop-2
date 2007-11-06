@@ -1,3 +1,10 @@
+2007-11-06  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/taku-launcher-tile.c:
+	Don't load the icon on creation, because we'll just receive
+	style-set shortly afterwards and reload it.  This makes the
+	desktop start a lot faster on my laptop (1.9s -> 1.2s).
+
 2007-11-02  Chris Lord  <chris@openedhand.com>
 
 	* libtaku/launcher-util.c: (get_icon):

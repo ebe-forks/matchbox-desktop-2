@@ -154,7 +154,8 @@ taku_launcher_tile_new_from_item (TakuMenuItem *item)
                               taku_menu_item_get_name (item));
   taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile),
                                 taku_menu_item_get_description (item));
-  update_icon (TAKU_LAUNCHER_TILE (tile));
+  /* Don't need to update the icon here, because we'll get a style-set signal
+     when the widget is realised which will update the icon. */
 
   for (l = taku_menu_item_get_categories (item); l; l = l->next) {
     taku_launcher_tile_add_group (tile, l->data);
