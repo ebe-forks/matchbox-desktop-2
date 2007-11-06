@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2007 OpenedHand Ltd
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -27,34 +27,48 @@ G_DEFINE_TYPE (TakuLauncherTile, taku_launcher_tile, TAKU_TYPE_ICON_TILE);
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_LAUNCHER_TILE, TakuLauncherTilePrivate))
 
 static GtkIconSize icon_size;
+/* The thread pool to load icons in the background */
+static GThreadPool *pool;
 
 struct _TakuLauncherTilePrivate
 {
-  char *filename;
   GList *groups;
   TakuMenuItem *item;
+  gboolean loading_icon; /* If the icon is queued to be loaded */
 };
 
+/* The thread function which loads icons */
 static void
-update_icon (TakuLauncherTile *tile)
+load_icon (gpointer data, gpointer user_data)
 {
-  TakuLauncherTilePrivate *priv;
+  TakuLauncherTile *tile = data;
+  GdkPixbuf *pixbuf;
 
-  g_return_if_fail (TAKU_IS_LAUNCHER_TILE (tile));
-  priv = tile->priv;
+  gdk_threads_enter ();
+  
+  pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
 
-  if (priv->item)
-    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), 
-                               taku_menu_item_get_icon (priv->item, (GtkWidget*)tile, icon_size));
-} 
+  if (pixbuf) {
+    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
+    g_object_unref (pixbuf);
+  }
+
+  g_atomic_int_set (&tile->priv->loading_icon, FALSE);
+  
+  gdk_threads_leave ();
+}
 
 static void
 taku_launcher_tile_style_set (GtkWidget *widget,
                               GtkStyle  *previous_style)
 {
+  TakuLauncherTile *tile = (TakuLauncherTile*)widget;
+
   GTK_WIDGET_CLASS (taku_launcher_tile_parent_class)->style_set (widget, previous_style);
 
-  update_icon (TAKU_LAUNCHER_TILE (widget));
+  /* Hot thread-safe check */
+  if (g_atomic_int_compare_and_exchange (&tile->priv->loading_icon, FALSE, TRUE))
+    g_thread_pool_push (pool, tile, NULL);
 }
 
 /* TODO: properties for the launcher and strings */
@@ -62,15 +76,11 @@ taku_launcher_tile_style_set (GtkWidget *widget,
 static void
 taku_launcher_tile_finalize (GObject *object)
 {
-  TakuLauncherTile *tile = TAKU_LAUNCHER_TILE (object);
-
   /* TODO
   if (tile->priv->data) {
     launcher_destroy (tile->priv->data);
   }
   */
-
-  g_free (tile->priv->filename);
 
   G_OBJECT_CLASS (taku_launcher_tile_parent_class)->finalize (object);
 }
@@ -127,6 +137,8 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
     g_warning ("taku-icon size not registered, falling back");
     icon_size = GTK_ICON_SIZE_BUTTON;
   }
+
+  pool = g_thread_pool_new (load_icon, NULL, 5, FALSE, NULL);
 }
 
 static void
@@ -138,6 +150,7 @@ taku_launcher_tile_init (TakuLauncherTile *self)
 GtkWidget *
 taku_launcher_tile_new ()
 {
+  /* TODO: make the item a construct only property */
   return g_object_new (TAKU_TYPE_LAUNCHER_TILE, NULL);
 }
 

@@ -1,5 +1,16 @@
 2007-11-06  Ross Burton  <ross@openedhand.com>
 
+	* configure.ac:
+	Add gthread-2.0
+
+	* libtaku/taku-launcher-tile.c:
+	Load tile icons via a thread pool for speed.
+
+	* src/main.c:
+	Initialise threading.
+
+2007-11-06  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/launcher-util.c:
 	Fix formatting and clean up the icon loading code.
 
