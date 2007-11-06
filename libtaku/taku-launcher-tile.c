@@ -26,7 +26,6 @@ G_DEFINE_TYPE (TakuLauncherTile, taku_launcher_tile, TAKU_TYPE_ICON_TILE);
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_LAUNCHER_TILE, TakuLauncherTilePrivate))
 
-static GtkIconSize icon_size;
 /* The thread pool to load icons in the background */
 static GThreadPool *pool;
 
@@ -42,10 +41,18 @@ static void
 load_icon (gpointer data, gpointer user_data)
 {
   TakuLauncherTile *tile = data;
+  GtkIconSize icon_size;
   GdkPixbuf *pixbuf;
 
   gdk_threads_enter ();
   
+  /* Lookup the icon size from the theme */
+  icon_size = gtk_icon_size_from_name ("taku-icon");
+  if (icon_size == GTK_ICON_SIZE_INVALID) {
+    g_warning ("taku-icon size not registered, falling back");
+    icon_size = GTK_ICON_SIZE_BUTTON;
+  }
+
   pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
 
   if (pixbuf) {
@@ -130,14 +137,6 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
 
   object_class->finalize = taku_launcher_tile_finalize;
   
-  /* Lookup the icon size from the theme. */
-  icon_size = gtk_icon_size_from_name ("taku-icon");
-  /* If the icon name isn't registered, use button sized icons as a fallback. */
-  if (icon_size == GTK_ICON_SIZE_INVALID) {
-    g_warning ("taku-icon size not registered, falling back");
-    icon_size = GTK_ICON_SIZE_BUTTON;
-  }
-
   pool = g_thread_pool_new (load_icon, NULL, 5, FALSE, NULL);
 }
 
