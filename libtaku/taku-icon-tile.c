@@ -158,9 +158,15 @@ taku_icon_tile_style_set (GtkWidget *widget, GtkStyle *previous)
 }
 
 static const char *
-taku_icon_tile_get_key (TakuTile *tile)
+taku_icon_tile_get_sort_key (TakuTile *tile)
 {
   return TAKU_ICON_TILE (tile)->priv->collation_key;
+}
+
+static const char *
+taku_icon_tile_get_search_key (TakuTile *tile)
+{
+  return taku_icon_tile_get_primary (TAKU_ICON_TILE (tile));
 }
 
 static void
@@ -202,8 +208,8 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
 
   widget_class->style_set = taku_icon_tile_style_set;
 
-  tile_class->get_sort_key = taku_icon_tile_get_key;
-  tile_class->get_search_key = taku_icon_tile_get_key;
+  tile_class->get_sort_key = taku_icon_tile_get_sort_key;
+  tile_class->get_search_key = taku_icon_tile_get_search_key;
 
   g_object_class_install_property (object_class, PROP_PIXBUF,
                                    g_param_spec_object ("pixbuf", "pixbuf",

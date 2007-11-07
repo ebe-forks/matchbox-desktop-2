@@ -1,5 +1,11 @@
 2007-11-07  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-icon-tile.c:
+	Don't return the collated key as the search key, as collation keys
+	are useless for everything but sorting. Fixes alpha keynav, #601.
+
+2007-11-07  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-queue-source.[ch]:
 	* libtaku/Makefile.am:
 	Mad phat GSource which monitors a GQueue.
