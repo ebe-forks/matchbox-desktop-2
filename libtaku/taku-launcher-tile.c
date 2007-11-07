@@ -26,9 +26,6 @@ G_DEFINE_TYPE (TakuLauncherTile, taku_launcher_tile, TAKU_TYPE_ICON_TILE);
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_LAUNCHER_TILE, TakuLauncherTilePrivate))
 
-/* The thread pool to load icons in the background */
-static GThreadPool *pool;
-
 struct _TakuLauncherTilePrivate
 {
   GList *groups;
@@ -36,21 +33,23 @@ struct _TakuLauncherTilePrivate
   gboolean loading_icon; /* If the icon is queued to be loaded */
 };
 
-/* The thread function which loads icons */
-static void
-load_icon (gpointer data, gpointer user_data)
+/* Icon size ID for the TakuIcon size */
+static GtkIconSize icon_size;
+/* Queue of tiles with pending icons to load */
+static GQueue queue = G_QUEUE_INIT;
+static guint idle_id = 0;
+
+/* The idle function which loads icons */
+static gboolean
+load_icon (gpointer data)
 {
-  TakuLauncherTile *tile = data;
-  GtkIconSize icon_size;
+  TakuLauncherTile *tile;
   GdkPixbuf *pixbuf;
 
-  gdk_threads_enter ();
-  
-  /* Lookup the icon size from the theme */
-  icon_size = gtk_icon_size_from_name ("taku-icon");
-  if (icon_size == GTK_ICON_SIZE_INVALID) {
-    g_warning ("taku-icon size not registered, falling back");
-    icon_size = GTK_ICON_SIZE_BUTTON;
+  tile = g_queue_pop_head (&queue);
+  if (tile == NULL) {
+    idle_id = 0;
+    return FALSE;
   }
 
   pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
@@ -58,11 +57,18 @@ load_icon (gpointer data, gpointer user_data)
   if (pixbuf) {
     taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
     g_object_unref (pixbuf);
+  } else {
+    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), NULL);
   }
 
-  g_atomic_int_set (&tile->priv->loading_icon, FALSE);
-  
-  gdk_threads_leave ();
+  tile->priv->loading_icon = FALSE;
+
+  if (g_queue_is_empty (&queue)) {
+    idle_id = 0;
+    return FALSE;
+  } else {
+    return TRUE;
+  }
 }
 
 static void
@@ -73,9 +79,13 @@ taku_launcher_tile_style_set (GtkWidget *widget,
 
   GTK_WIDGET_CLASS (taku_launcher_tile_parent_class)->style_set (widget, previous_style);
 
-  /* Hot thread-safe check */
-  if (g_atomic_int_compare_and_exchange (&tile->priv->loading_icon, FALSE, TRUE))
-    g_thread_pool_push (pool, tile, NULL);
+  /* Don't reload the icon if it is already in the queue */
+  if (!tile->priv->loading_icon) {
+    g_queue_push_tail (&queue, tile);
+    tile->priv->loading_icon = TRUE;
+    /* TODO: make a GSource to do this */
+    if (!idle_id) idle_id = g_idle_add (load_icon, NULL);
+  }
 }
 
 /* TODO: properties for the launcher and strings */
@@ -136,8 +146,13 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
   widget_class->style_set = taku_launcher_tile_style_set;
 
   object_class->finalize = taku_launcher_tile_finalize;
-  
-  pool = g_thread_pool_new (load_icon, NULL, 5, FALSE, NULL);
+
+  /* Lookup the icon size from the theme */
+  icon_size = gtk_icon_size_from_name ("taku-icon");
+  if (icon_size == GTK_ICON_SIZE_INVALID) {
+    g_warning ("taku-icon size not registered, falling back");
+    icon_size = GTK_ICON_SIZE_BUTTON;
+  }
 }
 
 static void
@@ -166,6 +181,9 @@ taku_launcher_tile_new_from_item (TakuMenuItem *item)
                               taku_menu_item_get_name (item));
   taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile),
                                 taku_menu_item_get_description (item));
+  taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile),
+                             gtk_widget_render_icon (GTK_WIDGET (tile), GTK_STOCK_REFRESH, icon_size, NULL));
+                                                     
   /* Don't need to update the icon here, because we'll get a style-set signal
      when the widget is realised which will update the icon. */
 
