@@ -14,7 +14,8 @@ libtaku_a_SOURCES = \
 	taku-menu-desktop.c \
 	taku-table.c taku-table.h \
 	taku-tile.c taku-tile.h \
-	xutil.c xutil.h
+	xutil.c xutil.h \
+	taku-queue-source.c taku-queue-source.h
 
 if HAVE_INOTIFY
 noinst_LIBRARIES += libinotify.a

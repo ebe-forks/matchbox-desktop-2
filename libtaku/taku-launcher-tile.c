@@ -19,6 +19,7 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include "taku-launcher-tile.h"
+#include "taku-queue-source.h"
 #include "launcher-util.h"
 
 G_DEFINE_TYPE (TakuLauncherTile, taku_launcher_tile, TAKU_TYPE_ICON_TILE);
@@ -37,7 +38,6 @@ struct _TakuLauncherTilePrivate
 static GtkIconSize icon_size;
 /* Queue of tiles with pending icons to load */
 static GQueue queue = G_QUEUE_INIT;
-static guint idle_id = 0;
 
 /* The idle function which loads icons */
 static gboolean
@@ -45,30 +45,29 @@ load_icon (gpointer data)
 {
   TakuLauncherTile *tile;
   GdkPixbuf *pixbuf;
-
-  tile = g_queue_pop_head (&queue);
-  if (tile == NULL) {
-    idle_id = 0;
-    return FALSE;
+  int i;
+  
+  /* Per iteration, load a few icons at once */
+  for (i = 0; i < 5; i++) {
+    
+    tile = g_queue_pop_head (&queue);
+    if (tile == NULL) {
+      return TRUE;
+    }
+    
+    pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
+    
+    if (pixbuf) {
+      taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
+      g_object_unref (pixbuf);
+    } else {
+      taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), NULL);
+    }
+    
+    tile->priv->loading_icon = FALSE;
   }
 
-  pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
-
-  if (pixbuf) {
-    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
-    g_object_unref (pixbuf);
-  } else {
-    taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), NULL);
-  }
-
-  tile->priv->loading_icon = FALSE;
-
-  if (g_queue_is_empty (&queue)) {
-    idle_id = 0;
-    return FALSE;
-  } else {
-    return TRUE;
-  }
+  return TRUE;
 }
 
 static void
@@ -83,8 +82,6 @@ taku_launcher_tile_style_set (GtkWidget *widget,
   if (!tile->priv->loading_icon) {
     g_queue_push_tail (&queue, tile);
     tile->priv->loading_icon = TRUE;
-    /* TODO: make a GSource to do this */
-    if (!idle_id) idle_id = g_idle_add (load_icon, NULL);
   }
 }
 
@@ -153,6 +150,7 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
     g_warning ("taku-icon size not registered, falling back");
     icon_size = GTK_ICON_SIZE_BUTTON;
   }
+  taku_idle_queue_add (&queue, load_icon, NULL);
 }
 
 static void

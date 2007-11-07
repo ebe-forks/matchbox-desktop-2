@@ -1,5 +1,14 @@
 2007-11-07  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/taku-queue-source.[ch]:
+	* libtaku/Makefile.am:
+	Mad phat GSource which monitors a GQueue.
+	
+	* libtaku/taku-launcher-tile.c:
+	Use the queue source instead of manually adding and firing.
+
+2007-11-07  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-launcher-tile.c:
 	Slept on this and realised my threading code was totally
 	broken. Because the thread aquired the GDK lock when it started it
