@@ -1,5 +1,11 @@
 2007-11-07  Ross Burton  <ross@openedhand.com>
 
+	* src/taku-category-bar.c:
+	Set the categories list so that the popup menu appears, and fix
+	the activated callback so that it works. #603.
+
+2007-11-07  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/taku-icon-tile.c:
 	Don't return the collated key as the search key, as collation keys
 	are useless for everything but sorting. Fixes alpha keynav, #601.

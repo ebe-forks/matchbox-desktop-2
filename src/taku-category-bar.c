@@ -31,6 +31,8 @@ G_DEFINE_TYPE (TakuCategoryBar, taku_category_bar, GTK_TYPE_HBOX);
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_CATEGORY_BAR, TakuCategoryBarPrivate))
 
+#define LIST_DATA "taku-category-bar:list"
+
 typedef struct {
   TakuTable *table;
   GList *categories;
@@ -154,14 +156,26 @@ popdown_menu (GtkMenuShell *menu_shell, gpointer user_data)
   gtk_widget_destroy (GTK_WIDGET (menu_shell));
 }
 
+static void
+menu_activated (GtkMenuItem *menu_item, gpointer user_data)
+{
+  TakuCategoryBar *bar = TAKU_CATEGORY_BAR (user_data);
+  GList *l;
+
+  l = g_object_get_data (G_OBJECT (menu_item), LIST_DATA);
+  set_category (bar, l);
+}
+
 static gboolean
 popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
 {
+  TakuCategoryBar *bar;
   TakuCategoryBarPrivate *priv;
   GtkWidget *menu;
   GList *l;
 
-  priv = GET_PRIVATE (TAKU_CATEGORY_BAR (user_data));
+  bar = TAKU_CATEGORY_BAR (user_data);
+  priv = GET_PRIVATE (bar);
   g_assert (priv);
 
   /* Button down */
@@ -178,7 +192,8 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
     GtkWidget *menu_item, *label;
 
     menu_item = gtk_menu_item_new ();
-    g_signal_connect_swapped (menu_item, "activate", G_CALLBACK (set_category), l);
+    g_object_set_data (G_OBJECT (menu_item), LIST_DATA, l); /* need a better way */
+    g_signal_connect (menu_item, "activate", G_CALLBACK (menu_activated), bar);
     gtk_widget_show (menu_item);
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
 
@@ -300,8 +315,10 @@ taku_category_bar_set_categories (TakuCategoryBar *bar, GList *categories)
 
   priv = GET_PRIVATE (bar);
 
-  /* TODO: handle category list of 1 by disabling the buttons */
+  priv->categories = categories;
+  
   if (categories) {
+    /* TODO: handle category list of 1 by disabling the buttons */
     set_category (bar, categories);
   } else {
     gtk_label_set_text (priv->switcher_label, _("No categories available"));
