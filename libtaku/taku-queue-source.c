@@ -54,6 +54,14 @@ static GSourceFuncs funcs = {
   prepare, check, dispatch, NULL
 };
 
+/**
+ * taku_idle_queue_add:
+ * @queue: the #GQueue to watch
+ * @function: the #GSourceFunc to call when @queue is not empty
+ * @data: user data to pass to @function
+ *
+ * Add a function to be called whenever @queue has items in.
+ */
 guint
 taku_idle_queue_add (GQueue *queue, GSourceFunc function, gpointer data)
 {
