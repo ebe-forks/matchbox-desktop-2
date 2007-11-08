@@ -72,21 +72,28 @@ x_get_workarea (int *x, int *y, int *w, int *h)
 }
 
 void
-x_window_activate (Window win)
+x_window_activate (Window win, guint32 timestamp)
 {
+  /* Note that this doesn't work if the WM doesn't support _NET_ACTIVE_WINDOW.
+     However, that is pretty much given really. */
+  
   Atom atom_net_active = gdk_x11_get_xatom_by_name ("_NET_ACTIVE_WINDOW");
-  XEvent ev;
+  XClientMessageEvent ev;
 
   memset (&ev, 0, sizeof ev);
-  ev.xclient.type = ClientMessage;
-  ev.xclient.window = win;
-  ev.xclient.message_type = atom_net_active;
-  ev.xclient.format = 32;
+  ev.type = ClientMessage;
+  ev.window = win;
+  ev.message_type = atom_net_active;
+  ev.format = 32;
 
-  ev.xclient.data.l[0] = 0; 
+  ev.data.l[0] = 2; /* 0: unknown, 1: application; 2: pager */
+  ev.data.l[1] = timestamp;
+  ev.data.l[2] = None; /* Currently active window */
+  ev.data.l[3] = 0;
+  ev.data.l[4] = 0;
 
   XSendEvent (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
-	      False, SubstructureRedirectMask, &ev);
+	      False, SubstructureRedirectMask, (XEvent*)&ev);
 }
 
 #define RETURN_NONE_IF_NULL(p) if ((p) == '\0') return None; 

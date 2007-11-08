@@ -231,7 +231,7 @@ launcher_start (GtkWidget *widget,
 
     win_found = mb_single_instance_get_window (argv[0]);
     if (win_found != None) {
-      x_window_activate (win_found);
+      x_window_activate (win_found, gtk_get_current_event_time ());
 
       return;
     }

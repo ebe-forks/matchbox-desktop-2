@@ -1,5 +1,14 @@
 2007-11-08  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/xutil.[ch]:
+	Update to the newer version of the _NET_ACTIVATE_WINDOW
+	specification.
+
+	* libtaku/launcher-util.c:
+	Update.
+
+2007-11-08  Ross Burton  <ross@openedhand.com>
+
 	* src/desktop.c:
 	Disable workarea support, turns out its not finished and breaks
 	too much.  Instead revert to old code which whilst it only works

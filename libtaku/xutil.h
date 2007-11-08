@@ -22,7 +22,7 @@ char * x_strerror (int code);
 
 gboolean x_get_workarea (int *x, int *y, int *w, int *h);
 
-void x_window_activate (Window win);
+void x_window_activate (Window win, guint32 timestamp);
 
 Window mb_single_instance_get_window (const char *bin_name);
 
