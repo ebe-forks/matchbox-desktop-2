@@ -20,7 +20,9 @@
 
 char * x_strerror (int code);
 
-gboolean x_get_workarea (int *x, int *y, int *w, int *h);
+typedef void (*WorkAreaFunc) (int x, int y, int width, int height);
+
+void x_monitor_workarea (GdkScreen *screen, WorkAreaFunc cb);
 
 void x_window_activate (Window win, guint32 timestamp);
 

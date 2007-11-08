@@ -22,6 +22,7 @@
 #include <gdk/gdkx.h>
 #include <string.h>
 #include <stdlib.h>
+#include "xutil.h"
 
 char *
 x_strerror (int code)
@@ -36,9 +37,8 @@ x_strerror (int code)
   return s;
 }
 
-
-gboolean
-x_get_workarea (int *x, int *y, int *w, int *h)
+void
+net_workarea_changed (WorkAreaFunc cb, GdkWindow *window)
 {
   Atom real_type;
   int result, xres, real_format;
@@ -57,18 +57,46 @@ x_get_workarea (int *x, int *y, int *w, int *h)
     char *s = x_strerror (xres);
     g_warning ("Cannot get property: %s", s);
     g_free (s);
-    return FALSE;
+    return;
   }
 
   if (result == Success && items_read) {
-    *x = coords[0];
-    *y = coords[1];
-    *w = coords[2];
-    *h = coords[3];
+    /* Note that this only considers the first workspace, and if used with
+       multi-desktop systems this may produce incorrect results. */
+    cb (coords[0], coords[1], coords[2], coords[3]);
     XFree(coords);
-    return TRUE;
   }
-  return FALSE;
+}
+
+static GdkFilterReturn
+workarea_property_filter (GdkXEvent *gdk_xevent, GdkEvent *event, gpointer data)
+{
+  XEvent *xevent = gdk_xevent;
+  WorkAreaFunc cb = data;
+  
+  switch (xevent->type) {
+  case PropertyNotify:
+    if (xevent->xproperty.atom == gdk_x11_get_xatom_by_name ("_NET_WORKAREA"))
+      net_workarea_changed (cb, event->any.window);
+    break;
+  default:
+    break;
+  }
+  
+  return GDK_FILTER_CONTINUE;
+}
+
+void
+x_monitor_workarea (GdkScreen *screen, WorkAreaFunc cb)
+{
+  GdkWindow *root;
+  
+  root = gdk_screen_get_root_window (screen);
+  
+  gdk_window_set_events (root, GDK_PROPERTY_NOTIFY);
+  gdk_window_add_filter (root, workarea_property_filter, cb);
+  
+  net_workarea_changed (cb, root);
 }
 
 void

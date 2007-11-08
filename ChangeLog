@@ -1,5 +1,14 @@
 2007-11-08  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/xutil.[ch]:
+	Remove x_get_workarea and replace it with x_monitor_workarea which
+	calls a function when the work area changes.
+
+	* src/desktop.c:
+	Use x_monitor_workarea so that workareas should work again (#609).
+
+2007-11-08  Ross Burton  <ross@openedhand.com>
+
 	* src/taku-category-bar.c:
 	Fix signal arguments so that the arrow buttons work (#610).
 

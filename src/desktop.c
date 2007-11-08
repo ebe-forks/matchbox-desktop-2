@@ -39,6 +39,7 @@ static GList *categories;
 static TakuCategoryBar *bar;
 static TakuTable *table;
 static TakuMenu *menu;
+static GtkWidget *fixed, *box;
 
 static void
 on_item_added (TakuMenu *menu, TakuMenuItem *item, gpointer null)
@@ -121,14 +122,22 @@ load_items (TakuMenu *menu)
 
 }
 
+static void
+workarea_changed (int x, int y, int w, int h)
+{
+  gtk_widget_set_size_request (box, w, h);
+  gtk_widget_queue_resize (box);
+  gtk_fixed_move (GTK_FIXED (fixed), box, x, y);
+}
+
 GtkWidget *
 create_desktop (void)
 {
-  GtkWidget *window, *box, *scrolled, *viewport, *fixed;
-
-  /* Sane defaults in case something terrible happens in x_get_workarea() */
-  int x = 0, y = 0;
-  int w = 640, h = 480;
+  GtkWidget *window, *scrolled, *viewport;
+#ifndef STANDALONE
+  GdkScreen *screen;
+#endif
+  int screen_w, screen_h;
 
   /* Register the magic taku-icon size so that it can be controlled from the
      theme. */
@@ -142,30 +151,37 @@ create_desktop (void)
 #ifndef STANDALONE
   gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
   gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
-  x_get_workarea (&x, &y, &w, &h);
+
+  screen = gtk_widget_get_screen (window);
+  screen_w = gdk_screen_get_width (screen);
+  screen_h = gdk_screen_get_height (screen);
 #else
-  gtk_window_set_default_size (GTK_WINDOW (window), w, h);
+  screen_w = 640;
+  screen_h = 480;
+
+  gtk_window_set_default_size (GTK_WINDOW (window), screen_w, screen_h);
 #endif
 
   gtk_widget_show (window);
 
-#if BROKEN_WORKAREA
   /* This fixed is used to position the desktop itself in the work area */
   fixed = gtk_fixed_new ();
   gtk_widget_show (fixed);
   gtk_container_add (GTK_CONTAINER (window), fixed);
-#endif
 
   /* Main VBox */
   box = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (box);
-#if BROKEN_WORKAREA
-  gtk_widget_set_size_request (box, w, h);
-  gtk_fixed_put (GTK_FIXED (fixed), box, x, y);
-#else
-  gtk_container_add (GTK_CONTAINER (window), box);
-#endif
+  gtk_fixed_put (GTK_FIXED (fixed), box, 0, 0);
+  /* Set a sane default in case there is no work area defined yet */
+  workarea_changed (0, 0, screen_w, screen_h);
 
+#ifdef STANDALONE
+  /* TODO: fake workarea_changed calls on window resize */
+#else
+  x_monitor_workarea (gtk_widget_get_screen (window), workarea_changed);
+#endif
+  
   /* Navigation bar */
   bar = TAKU_CATEGORY_BAR (taku_category_bar_new ());
   gtk_widget_show (GTK_WIDGET (bar));
