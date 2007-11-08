@@ -236,7 +236,7 @@ taku_category_bar_init (TakuCategoryBar *bar)
   gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
   atk_object_set_name (gtk_widget_get_accessible (button), "GroupPrevious");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (prev_category), bar);
+  g_signal_connect_swapped (button, "clicked", G_CALLBACK (prev_category), bar);
   gtk_widget_show (button);
   gtk_box_pack_start (GTK_BOX (bar), button, FALSE, TRUE, 0);
 
@@ -269,7 +269,7 @@ taku_category_bar_init (TakuCategoryBar *bar)
   atk_object_set_name (gtk_widget_get_accessible (button), "GroupNext");
 
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-  g_signal_connect (button, "clicked", G_CALLBACK (next_category), bar);
+  g_signal_connect_swapped (button, "clicked", G_CALLBACK (next_category), bar);
   gtk_widget_show (button);
   gtk_box_pack_end (GTK_BOX (bar), button, FALSE, TRUE, 0);
 
