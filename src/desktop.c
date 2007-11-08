@@ -149,16 +149,22 @@ create_desktop (void)
 
   gtk_widget_show (window);
 
+#if BROKEN_WORKAREA
   /* This fixed is used to position the desktop itself in the work area */
   fixed = gtk_fixed_new ();
   gtk_widget_show (fixed);
   gtk_container_add (GTK_CONTAINER (window), fixed);
+#endif
 
   /* Main VBox */
   box = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (box);
+#if BROKEN_WORKAREA
   gtk_widget_set_size_request (box, w, h);
   gtk_fixed_put (GTK_FIXED (fixed), box, x, y);
+#else
+  gtk_container_add (GTK_CONTAINER (window), box);
+#endif
 
   /* Navigation bar */
   bar = TAKU_CATEGORY_BAR (taku_category_bar_new ());
