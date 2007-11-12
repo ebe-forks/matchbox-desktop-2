@@ -27,10 +27,6 @@ main (int argc, char **argv)
 {
   GtkWidget *desktop;
   
-  g_thread_init (NULL);
-  gdk_threads_init ();
-  gdk_threads_enter ();
-  
   gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
   
@@ -38,7 +34,5 @@ main (int argc, char **argv)
   gtk_main ();
   destroy_desktop ();
   
-  gdk_threads_leave ();
-
   return 0;
 }
