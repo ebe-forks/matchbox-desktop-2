@@ -465,7 +465,7 @@ inotify_event (ik_event_t *event, inotify_sub *sub)
     path = g_build_filename (sub->dirname, event->name, NULL);
     item = _find_item (menu, path);
     if (item)
-      g_signal_emit (menu, _menu_signals[ITEM_ADDED], 0, item);    
+      g_signal_emit (menu, _menu_signals[ITEM_REMOVED], 0, item);    
     g_free (path);
   }
 }
