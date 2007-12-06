@@ -1,5 +1,12 @@
 2007-12-06  Chris Lord  <chris@openedhand.com>
 
+	* libtaku/taku-menu-desktop.c: (taku_menu_desktop_get_executable):
+	* libtaku/taku-menu.h:
+	Rename taku_menu_item_get_binary_name ->
+	taku_menu_desktop_get_executable
+
+2007-12-06  Chris Lord  <chris@openedhand.com>
+
 	* libtaku/taku-menu-desktop.c: (taku_menu_item_get_binary_name):
 	* libtaku/taku-menu.h:
 	Add an accessor function for argv[0] on TakuMenuItem

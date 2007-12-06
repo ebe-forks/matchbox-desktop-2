@@ -106,14 +106,15 @@ taku_menu_item_get_icon (TakuMenuItem *item,
                          GtkWidget *widget, 
                          GtkIconSize size);
 
-const gchar*
-taku_menu_item_get_binary_name (TakuMenuItem *item);
-
 GList*
 taku_menu_item_get_categories (TakuMenuItem *item);
 
 gboolean
 taku_menu_item_launch (TakuMenuItem *item, GtkWidget *widget);
+
+const gchar*
+taku_menu_desktop_get_executable (TakuMenuItem *item);
+
 
 G_END_DECLS
 
