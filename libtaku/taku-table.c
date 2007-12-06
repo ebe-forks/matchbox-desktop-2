@@ -185,6 +185,12 @@ reflow_foreach (gpointer widget, gpointer user_data)
   /* Filter out unwanted items */
   if (table->priv->filter != NULL) {
     if (!taku_tile_matches_filter (tile, table->priv->filter)) {
+      gtk_container_child_set (container, GTK_WIDGET (widget),
+                               "left-attach", 0,
+                               "right-attach", 1,
+                               "top-attach", 0,
+                               "bottom-attach", 1,
+                               NULL);
       gtk_widget_hide (widget);
       return;
     }

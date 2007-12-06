@@ -1,5 +1,11 @@
 2007-12-06  Chris Lord  <chris@openedhand.com>
 
+	* libtaku/taku-table.c: (reflow_foreach):
+	Attach hidden widgets to 0,1,0,1 so they don't force the table to be
+	bigger than it needs to be when filtering
+
+2007-12-06  Chris Lord  <chris@openedhand.com>
+
 	* libtaku/taku-menu-desktop.c: (taku_menu_desktop_get_executable):
 	* libtaku/taku-menu.h:
 	Rename taku_menu_item_get_binary_name ->
