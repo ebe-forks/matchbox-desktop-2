@@ -131,6 +131,14 @@ taku_menu_item_get_icon (TakuMenuItem *item, GtkWidget *widget, GtkIconSize size
   return get_icon (item->icon_name, width);
 }
 
+const gchar *
+taku_menu_item_get_binary_name (TakuMenuItem *item)
+{
+  g_return_val_if_fail (item, NULL);
+  
+  return item->argv[0];
+}
+
 GList*
 taku_menu_item_get_categories (TakuMenuItem *item)
 {

@@ -106,6 +106,9 @@ taku_menu_item_get_icon (TakuMenuItem *item,
                          GtkWidget *widget, 
                          GtkIconSize size);
 
+const gchar*
+taku_menu_item_get_binary_name (TakuMenuItem *item);
+
 GList*
 taku_menu_item_get_categories (TakuMenuItem *item);
 
