@@ -5,6 +5,7 @@ bin_PROGRAMS = matchbox-desktop
 matchbox_desktop_SOURCES = \
 	main.c \
 	taku-category-bar.c taku-category-bar.h \
+	moko-finger-scroll.c moko-finger-scroll.h \
 	desktop.c desktop.h
 
 matchbox_desktop_LDADD = \

@@ -1,3 +1,12 @@
+2007-12-18  Ross Burton  <ross@openedhand.com>
+
+	* src/Makefile.am:
+	* src/moko-finger-scroll.[ch]:
+	Add MokoFingerScroll widget
+
+	* src/desktop.c:
+	Use MokoFingerScroll instead of a GtkScrolledWindow.
+
 2007-12-06  Chris Lord  <chris@openedhand.com>
 
 	* libtaku/taku-table.c: (reflow_foreach):
