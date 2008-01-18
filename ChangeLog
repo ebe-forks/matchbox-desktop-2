@@ -1,5 +1,14 @@
 2008-01-18  Ross Burton  <ross@openedhand.com>
 
+	* libtaku/inotify/*:
+	Don't use local copies of system headers which are useless because
+	they don't believe that ARM support inotify...
+	
+	* libtaku/taku-menu-desktop.c:
+	Update to use system headers.	
+
+2008-01-18  Ross Burton  <ross@openedhand.com>
+
 	* src/moko-finger-scroll.c:
 	Fix compile warnings.
 

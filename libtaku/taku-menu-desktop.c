@@ -29,8 +29,8 @@
 #include "launcher-util.h"
 
 #if WITH_INOTIFY
+#include <sys/inotify.h>
 #include "inotify/inotify-path.h"
-#include "inotify/local_inotify.h"
 
 static gboolean with_inotify;
 G_LOCK_DEFINE (inotify_lock);
