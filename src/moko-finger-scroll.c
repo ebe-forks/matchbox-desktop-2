@@ -239,7 +239,7 @@ moko_finger_scroll_button_press_cb (MokoFingerScroll *scroll,
 	     priv->align)->child->window)) {
 		
 		g_object_add_weak_pointer ((GObject *)priv->child,
-			&priv->child);
+                                           (gpointer)&priv->child);
 		
 		event = (GdkEventButton *)gdk_event_copy ((GdkEvent *)event);
 		event->x = x;
@@ -544,7 +544,7 @@ moko_finger_scroll_button_release_cb (MokoFingerScroll *scroll,
 			event->y_root, event->time, FALSE);
 	}
 	g_object_remove_weak_pointer ((GObject *)priv->child,
-		&priv->child);
+		(gpointer)&priv->child);
 
 	priv->moved = FALSE;
 	gdk_event_free ((GdkEvent *)event);

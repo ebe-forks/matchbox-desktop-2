@@ -1,5 +1,10 @@
 2008-01-18  Ross Burton  <ross@openedhand.com>
 
+	* src/moko-finger-scroll.c:
+	Fix compile warnings.
+
+2008-01-18  Ross Burton  <ross@openedhand.com>
+
 	* libtaku/inotify/inotify-kernel.c:
 	If inotify_init() returns error, print the error.
 
