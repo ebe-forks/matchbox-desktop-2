@@ -1,3 +1,9 @@
+2008-01-18  Tomas Frydrych  <tf@o-hand.com>
+
+        * src/desktop.c:
+	(create_desktop):
+	Set default size of top level window (makes mbd-2 work with mbwm-2).
+	
 2007-12-20  Ross Burton  <ross@openedhand.com>
 
 	* src/Makefile.am:

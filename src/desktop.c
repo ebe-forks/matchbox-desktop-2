@@ -159,9 +159,9 @@ create_desktop (void)
 #else
   screen_w = 640;
   screen_h = 480;
+#endif
 
   gtk_window_set_default_size (GTK_WINDOW (window), screen_w, screen_h);
-#endif
 
   gtk_widget_show (window);
 
