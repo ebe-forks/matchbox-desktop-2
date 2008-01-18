@@ -206,8 +206,10 @@ gboolean _ik_startup (void (*cb)(ik_event_t *event))
   initialized = TRUE;
   inotify_instance_fd = inotify_init ();
   
-  if (inotify_instance_fd < 0)
+  if (inotify_instance_fd < 0) {
+    g_debug ("Cannot initialise inotify: %s", g_strerror (errno));
     return FALSE;
+  }
 
   inotify_read_ioc = g_io_channel_unix_new (inotify_instance_fd);
   ik_poll_fd.fd = inotify_instance_fd;

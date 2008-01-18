@@ -1,7 +1,11 @@
+2008-01-18  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/inotify/inotify-kernel.c:
+	If inotify_init() returns error, print the error.
+
 2008-01-18  Tomas Frydrych  <tf@o-hand.com>
 
-        * src/desktop.c:
-	(create_desktop):
+	* src/desktop.c:
 	Set default size of top level window (makes mbd-2 work with mbwm-2).
 	
 2007-12-20  Ross Burton  <ross@openedhand.com>
