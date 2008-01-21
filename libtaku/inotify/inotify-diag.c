@@ -38,10 +38,12 @@ G_LOCK_EXTERN (inotify_lock);
 static gboolean
 id_dump (gpointer userdata)
 {
-  G_LOCK (inotify_lock);
-  GIOChannel *ioc = NULL;
-  pid_t pid = getpid ();
+  GIOChannel *ioc;
+  pid_t pid;
   char *fname;
+  G_LOCK (inotify_lock);
+  ioc = NULL;
+  pid = getpid ();
 
   fname = g_strdup_printf ("/tmp/gvfsid.%d", pid);
   ioc = g_io_channel_new_file (fname, "w", NULL);

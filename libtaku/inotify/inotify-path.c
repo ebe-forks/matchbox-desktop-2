@@ -102,14 +102,16 @@ _ip_startup (void (*cb)(ik_event_t *event, inotify_sub *sub))
 }
 
 static void
-ip_map_path_dir (const char *path, ip_watched_dir_t *dir)
+ip_map_path_dir (const char       *path, 
+                 ip_watched_dir_t *dir)
 {
   g_assert (path && dir);
   g_hash_table_insert (path_dir_hash, dir->path, dir);
 }
 
 static void
-ip_map_sub_dir (inotify_sub *sub, ip_watched_dir_t *dir)
+ip_map_sub_dir (inotify_sub      *sub, 
+                ip_watched_dir_t *dir)
 {
   /* Associate subscription and directory */
   g_assert (dir && sub);
@@ -118,7 +120,8 @@ ip_map_sub_dir (inotify_sub *sub, ip_watched_dir_t *dir)
 }
 
 static void
-ip_map_wd_dir (gint32 wd, ip_watched_dir_t *dir)
+ip_map_wd_dir (gint32            wd, 
+               ip_watched_dir_t *dir)
 {
   GList *dir_list;
   
@@ -151,7 +154,7 @@ _ip_start_watching (inotify_sub *sub)
   wd = _ik_watch (sub->dirname, IP_INOTIFY_MASK|IN_ONLYDIR, &err);
   if (wd < 0) 
     {
-      IP_W("Failed\n");
+      IP_W ("Failed\n");
       return FALSE;
     }
   else
@@ -172,14 +175,16 @@ _ip_start_watching (inotify_sub *sub)
 }
 
 static void
-ip_unmap_path_dir (const char *path, ip_watched_dir_t *dir)
+ip_unmap_path_dir (const char       *path, 
+                   ip_watched_dir_t *dir)
 {
   g_assert (path && dir);
   g_hash_table_remove (path_dir_hash, dir->path);
 }
 
 static void
-ip_unmap_wd_dir (gint32 wd, ip_watched_dir_t *dir)
+ip_unmap_wd_dir (gint32            wd, 
+                 ip_watched_dir_t *dir)
 {
   GList *dir_list = g_hash_table_lookup (wd_dir_hash, GINT_TO_POINTER (wd));
   
@@ -206,7 +211,8 @@ ip_unmap_wd (gint32 wd)
 }
 
 static void
-ip_unmap_sub_dir (inotify_sub *sub, ip_watched_dir_t *dir)
+ip_unmap_sub_dir (inotify_sub       *sub, 
+                  ip_watched_dir_t *dir)
 {
   g_assert (sub && dir);
   g_hash_table_remove (sub_dir_hash, sub);
@@ -228,7 +234,7 @@ ip_unmap_all_subs (ip_watched_dir_t *dir)
 }
 
 gboolean
-_ip_stop_watching  (inotify_sub *sub)
+_ip_stop_watching (inotify_sub *sub)
 {
   ip_watched_dir_t *dir = NULL;
   
@@ -252,7 +258,8 @@ _ip_stop_watching  (inotify_sub *sub)
 
 
 static ip_watched_dir_t *
-ip_watched_dir_new (const char *path, gint32 wd)
+ip_watched_dir_new (const char *path, 
+                    gint32      wd)
 {
   ip_watched_dir_t *dir = g_new0 (ip_watched_dir_t, 1);
   
@@ -263,7 +270,7 @@ ip_watched_dir_new (const char *path, gint32 wd)
 }
 
 static void
-ip_watched_dir_free (ip_watched_dir_t * dir)
+ip_watched_dir_free (ip_watched_dir_t *dir)
 {
   g_assert (dir->subs == NULL);
   g_free (dir->path);
@@ -271,7 +278,8 @@ ip_watched_dir_free (ip_watched_dir_t * dir)
 }
 
 static void
-ip_wd_delete (gpointer data, gpointer user_data)
+ip_wd_delete (gpointer data, 
+              gpointer user_data)
 {
   ip_watched_dir_t *dir = data;
   GList *l = NULL;
@@ -289,7 +297,9 @@ ip_wd_delete (gpointer data, gpointer user_data)
 }
 
 static void
-ip_event_dispatch (GList *dir_list, GList* pair_dir_list, ik_event_t *event)
+ip_event_dispatch (GList      *dir_list, 
+                   GList      *pair_dir_list, 
+                   ik_event_t *event)
 {
   GList *dirl;
   
