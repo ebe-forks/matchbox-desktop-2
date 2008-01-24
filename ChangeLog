@@ -1,3 +1,11 @@
+2008-01-24  Ross Burton  <ross@openedhand.com>
+
+	* src/Makefile.am:
+	* src/moko-finger-scroll.[ch]:
+	* src/desktop.c:
+	Remove MokoFingerScroll widget, its too slow to be usable on the
+	Zaurus when rotated.  Maybe later.
+
 2008-01-21  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/inotify/*:

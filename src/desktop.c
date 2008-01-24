@@ -30,7 +30,6 @@
 #include "libtaku/taku-icon-tile.h"
 #include "libtaku/taku-launcher-tile.h"
 #include "taku-category-bar.h"
-#include "moko-finger-scroll.h"
 
 #include "libtaku/xutil.h"
 
@@ -134,7 +133,7 @@ workarea_changed (int x, int y, int w, int h)
 GtkWidget *
 create_desktop (void)
 {
-  GtkWidget *window, *scrolled;
+  GtkWidget *window, *scrolled, *viewport;
 #ifndef STANDALONE
   GdkScreen *screen;
 #endif
@@ -189,14 +188,22 @@ create_desktop (void)
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (bar), FALSE, TRUE, 0);
 
   /* Table area */
-  scrolled = moko_finger_scroll_new ();
+  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_widget_show (scrolled);
   gtk_box_pack_start (GTK_BOX (box), scrolled, TRUE, TRUE, 0);
+
+  viewport = gtk_viewport_new (NULL, NULL);
+  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
+                                GTK_SHADOW_NONE);
+  gtk_widget_show (viewport);
+  gtk_container_add (GTK_CONTAINER (scrolled), viewport);
 
   table = TAKU_TABLE (taku_table_new ());
   g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
   gtk_widget_show (GTK_WIDGET (table));
-  moko_finger_scroll_add_with_viewport (MOKO_FINGER_SCROLL (scrolled), GTK_WIDGET (table));
+  gtk_container_add (GTK_CONTAINER (viewport), GTK_WIDGET (table));
 
   menu = taku_menu_get_default ();
   categories = taku_menu_get_categories (menu);
