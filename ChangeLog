@@ -1,3 +1,9 @@
+2008-02-19  Rob Bradford  <rob@openedhand.com>
+
+	* libtaku/taku-menu-desktop.c: (_remove_item), (inotify_event):
+	When an item is removed (due to an inotify event) also remove it from
+	the internal list of items and free the memory associated with it.
+
 2008-01-24  Ross Burton  <ross@openedhand.com>
 
 	* src/Makefile.am:

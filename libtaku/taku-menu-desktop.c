@@ -455,6 +455,18 @@ _find_item (TakuMenu *menu, const gchar *path)
 }
 
 static void
+_remove_item (TakuMenu *menu, TakuMenuItem *item)
+{
+  TakuMenuPrivate *priv;
+
+  g_return_if_fail (TAKU_IS_MENU (menu));
+  priv = menu->priv;
+
+  priv->items = g_list_remove (priv->items, item);
+  g_slice_free (TakuMenuItem, item);
+}
+
+static void
 inotify_event (ik_event_t *event, inotify_sub *sub)
 {
   char *path;
@@ -465,15 +477,21 @@ inotify_event (ik_event_t *event, inotify_sub *sub)
     if (g_str_has_suffix (event->name, ".desktop")) {
       path = g_build_filename (sub->dirname, event->name, NULL);
       item = load_desktop_file (taku_menu_get_default (), path);
+
       if (item)
         g_signal_emit (menu, _menu_signals[ITEM_ADDED], 0, item);
+
       g_free (path);
     }
   } else if (event->mask & IN_MOVED_FROM || event->mask & IN_DELETE) {
     path = g_build_filename (sub->dirname, event->name, NULL);
     item = _find_item (menu, path);
-    if (item)
-      g_signal_emit (menu, _menu_signals[ITEM_REMOVED], 0, item);    
+
+    if (item) {
+      g_signal_emit (menu, _menu_signals[ITEM_REMOVED], 0, item);
+      _remove_item (menu, item);
+    }
+
     g_free (path);
   }
 }
