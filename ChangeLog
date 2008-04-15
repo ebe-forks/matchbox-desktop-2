@@ -1,3 +1,8 @@
+2008-04-15  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	Remove AM_DISABLE_STATIC, as we don't use libtool.
+
 2008-02-19  Rob Bradford  <rob@openedhand.com>
 
 	* libtaku/taku-menu-desktop.c: (_remove_item), (inotify_event):
