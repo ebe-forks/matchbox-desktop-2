@@ -8,9 +8,9 @@ matchbox_desktop_SOURCES = \
 	desktop.c desktop.h
 
 matchbox_desktop_LDADD = \
+	$(top_builddir)/libtaku/libtaku.a \
 	$(GTK_LIBS) \
-	$(SN_LIBS) \
-	$(top_builddir)/libtaku/libtaku.a
+	$(SN_LIBS)
 
 if HAVE_INOTIFY
 matchbox_desktop_LDADD += $(top_builddir)/libtaku/libinotify.a

@@ -1,3 +1,11 @@
+2008-06-11  Ross Burton  <ross@openedhand.com>
+
+	* libtaku/Makefile.am:
+	Don't set LDADD, it doesn't do anything useful for a static library.
+
+	* src/Makefile.am:
+	Reorder the linked libraries so that --as-needed works.
+
 2008-04-15  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:
