@@ -22,6 +22,10 @@
 #include "taku-queue-source.h"
 #include "launcher-util.h"
 
+#ifndef G_QUEUE_INIT
+#  define G_QUEUE_INIT { NULL, NULL, 0 }
+#endif
+
 G_DEFINE_TYPE (TakuLauncherTile, taku_launcher_tile, TAKU_TYPE_ICON_TILE);
 
 #define GET_PRIVATE(o) \

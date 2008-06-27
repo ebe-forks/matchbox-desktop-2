@@ -1,3 +1,8 @@
+2008-06-27  Chris Lord  <chris@openedhand.com>
+
+	* libtaku/taku-launcher-tile.c:
+	Define G_QUEUE_INIT if it isn't already; fixes building with GLib <2.14
+
 2008-06-11  Ross Burton  <ross@openedhand.com>
 
 	* libtaku/Makefile.am:
