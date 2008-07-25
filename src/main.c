@@ -22,6 +22,38 @@
 
 #include "desktop.h"
 
+#if WITH_DBUS
+#include <dbus/dbus.h>
+
+static gboolean
+emit_loaded_signal (gpointer user_data)
+{
+  DBusError error = DBUS_ERROR_INIT;
+  DBusConnection *conn;
+  DBusMessage *msg;
+
+  conn = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
+  if (!conn) {
+    g_printerr ("Cannot connect to system bus: %s", error.message);
+    dbus_error_free (&error);
+    return FALSE;
+  }
+
+  msg = dbus_message_new_signal ("/", "org.matchbox_project.desktop", "Loaded");
+
+  dbus_connection_send (conn, msg, NULL);
+  dbus_message_unref (msg);
+  
+  /* Flush explicitly because we're too lazy to integrate DBus into the main
+     loop. We're only sending a signal, so if we got as far as here it's
+     unlikely to block. */
+  dbus_connection_flush (conn);
+  dbus_connection_unref (conn);
+  
+  return FALSE;
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -29,6 +61,10 @@ main (int argc, char **argv)
   
   gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
+
+#if WITH_DBUS
+  g_idle_add (emit_loaded_signal, NULL);
+#endif
   
   desktop = create_desktop ();
   gtk_main ();

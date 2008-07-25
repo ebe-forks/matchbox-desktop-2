@@ -1,3 +1,11 @@
+2008-07-25  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	* src/main.c:
+	Add optional DBus support, and if enabled send a signal on the
+	system bus when the desktop has loaded.
+
 2008-06-27  Chris Lord  <chris@openedhand.com>
 
 	* libtaku/taku-launcher-tile.c:

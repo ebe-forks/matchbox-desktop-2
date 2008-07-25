@@ -33,6 +33,15 @@ if test x$enable_standalone != xno; then
   AC_DEFINE(STANDALONE, [1], [Run in a window])
 fi
 
+AC_ARG_WITH(dbus,
+        AC_HELP_STRING([--with-dbus], [use DBus to send a 'loaded' signal]),
+        with_dbus=$withval, with_dbus=no)
+if test x$with_dbus != xno; then
+    PKG_CHECK_MODULES(DBUS, dbus-1, ,
+      AC_MSG_ERROR([libdbus-1 not installed (disable with --without-dbus)]))
+    AC_DEFINE(WITH_DBUS, [1], [Use DBus])
+fi   
+
 AC_OUTPUT([
 Makefile
 libtaku/Makefile
