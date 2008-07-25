@@ -7,3 +7,11 @@ Favourite Idea 2
 
 Single Instance
 - Support GtkUnique directly via keys in desktop files?
+
+
+GIO Port
+- port desktop to 100% async gio
+- don't read anything on creation, rely entirely on item-added signals as
+  directories are scanned
+- emit finished signal when the initial sweep is done, so icons can then be
+  loaded and the boot continued
