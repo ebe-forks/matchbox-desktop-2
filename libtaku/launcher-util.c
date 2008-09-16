@@ -131,6 +131,7 @@ strip_extension (const char *file)
 }
 
 #define MISSING_IMAGE "gtk-missing-image"
+#define GENERIC_EXECUTABLE "application-x-executable"
 
 GdkPixbuf*
 get_icon (const gchar *name, gint pixel_size)
@@ -145,7 +146,7 @@ get_icon (const gchar *name, gint pixel_size)
     theme = gtk_icon_theme_get_default ();
 
   if (name == NULL) {
-    return get_icon (MISSING_IMAGE, pixel_size);
+    return get_icon (GENERIC_EXECUTABLE, pixel_size);
   }
 
   if (g_path_is_absolute (name)) {
@@ -172,13 +173,16 @@ get_icon (const gchar *name, gint pixel_size)
   }
   g_free (stripped);
 
+  /* Fallback on generic executable, then missing image */
   if (pixbuf == NULL) {
-    if (strcmp (name, MISSING_IMAGE) == 0)
-      return NULL;
-    else
-      return get_icon (MISSING_IMAGE, pixel_size);  
+    pixbuf = get_icon (GENERIC_EXECUTABLE, pixel_size);
+    if (pixbuf == NULL) {
+      if (strcmp (name, MISSING_IMAGE) == 0)
+        return NULL;
+      else
+        return get_icon (MISSING_IMAGE, pixel_size);  
+    }
   }
-
  
   width = gdk_pixbuf_get_width (pixbuf);
   height = gdk_pixbuf_get_height (pixbuf);

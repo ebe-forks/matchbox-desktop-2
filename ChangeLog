@@ -1,3 +1,8 @@
+2008-09-16  Ross Burton  <ross@linux.intel.com>
+
+	* libtaku/launcher-util.c:
+	When icons are missing use the generic executable icon.
+
 2008-07-25  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:
