@@ -175,12 +175,12 @@ get_icon (const gchar *name, gint pixel_size)
 
   /* Fallback on generic executable, then missing image */
   if (pixbuf == NULL) {
-    pixbuf = get_icon (GENERIC_EXECUTABLE, pixel_size);
-    if (pixbuf == NULL) {
-      if (strcmp (name, MISSING_IMAGE) == 0)
-        return NULL;
-      else
-        return get_icon (MISSING_IMAGE, pixel_size);  
+    if (strcmp (name, MISSING_IMAGE) == 0) {
+      return NULL;
+    } else if (strcmp (name, GENERIC_EXECUTABLE) == 0) {
+      return get_icon (MISSING_IMAGE, pixel_size);
+    } else {
+      return get_icon (GENERIC_EXECUTABLE, pixel_size);
     }
   }
  
