@@ -339,7 +339,7 @@ load_desktop_file (TakuMenu *menu, const char *filename)
   TakuMenuPrivate *priv;
   TakuMenuItem *item = NULL;
   GKeyFile *key_file;
-  GError *err;
+  GError *err = NULL;
   gchar *exec, *cats;
   
   g_assert (filename);
