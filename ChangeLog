@@ -1,3 +1,9 @@
+2008-09-29  Rob Bradford  <rob@linux.intel.com>
+
+	* libtaku/taku-menu-desktop.c (load_desktop_file), (_remove_item),
+	(taku_menu_init):
+	Use a simple hash to avoid having duplicate .desktop files.
+
 2008-09-24  Rob Bradford  <rob@linux.intel.com>
 
 	* libtaku/taku-menu-desktop.c (load_desktop_file):

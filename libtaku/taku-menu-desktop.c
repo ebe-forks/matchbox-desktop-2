@@ -46,6 +46,8 @@ struct _TakuMenuPrivate
   GList *categories;
   GList *items;
 
+  GHashTable *path_items_hash;
+
   TakuLauncherCategory *fallback_category;
 };
 
@@ -346,6 +348,10 @@ load_desktop_file (TakuMenu *menu, const char *filename)
   g_return_val_if_fail (TAKU_IS_MENU (menu), NULL);
   priv = menu->priv;
 
+  /* Check for duplicate desktop files based on path name */
+  if (g_hash_table_lookup (priv->path_items_hash, filename))
+    return NULL;
+
   key_file = g_key_file_new ();
 
   /* Do the checks to make sure the .desktop file is valid */
@@ -392,6 +398,7 @@ load_desktop_file (TakuMenu *menu, const char *filename)
   
   set_groups (menu, item);
   priv->items = g_list_append (priv->items, item);
+  g_hash_table_insert (priv->path_items_hash, item->path, item);
 
   return item;
 }
@@ -463,6 +470,10 @@ _remove_item (TakuMenu *menu, TakuMenuItem *item)
   priv = menu->priv;
 
   priv->items = g_list_remove (priv->items, item);
+
+  g_hash_table_remove (priv->path_items_hash, item->path);
+
+  /* TODO: Lots of leaks here */
   g_slice_free (TakuMenuItem, item);
 }
 
@@ -603,6 +614,7 @@ taku_menu_class_init (TakuMenuClass *klass)
   g_type_class_add_private (obj_class, sizeof(TakuMenuPrivate));
 
 }
+
 static void
 taku_menu_init (TakuMenu *menu)
 {
@@ -611,6 +623,11 @@ taku_menu_init (TakuMenu *menu)
   const gchar * const *dirs;
 
   priv = menu->priv = TAKU_MENU_GET_PRIVATE (menu);
+
+  priv->path_items_hash = g_hash_table_new_full (g_str_hash,
+                                                 g_str_equal,
+                                                 NULL,
+                                                 NULL);
 
 #if WITH_INOTIFY
   with_inotify = _ip_startup (inotify_event);
