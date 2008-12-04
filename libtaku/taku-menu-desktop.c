@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2007 OpenedHand Ltd
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -51,7 +51,7 @@ struct _TakuMenuPrivate
   TakuLauncherCategory *fallback_category;
 };
 
-struct _TakuMenuItem 
+struct _TakuMenuItem
 {
   gchar *path;
   gchar *name;
@@ -79,19 +79,19 @@ static guint _menu_signals[LAST_SIGNAL] = {0};
  * Public functions
  */
 
-/* 
- * Returns a list of TakuLauncherCategorys 
+/*
+ * Returns a list of TakuLauncherCategorys
  */
 GList*
 taku_menu_get_categories (TakuMenu *menu)
 {
   g_return_val_if_fail (TAKU_IS_MENU (menu), NULL);
-  
+
   return menu->priv->categories;
 }
 
-/* 
- * Returns a list of TakuMenuItems 
+/*
+ * Returns a list of TakuMenuItems
  */
 GList*
 taku_menu_get_items (TakuMenu *menu)
@@ -137,7 +137,7 @@ GList*
 taku_menu_item_get_categories (TakuMenuItem *item)
 {
   g_return_val_if_fail (item, NULL);
-  
+
   return item->categories;
 }
 
@@ -147,12 +147,12 @@ taku_menu_item_launch (TakuMenuItem *item, GtkWidget *widget)
 {
   g_return_val_if_fail (item, FALSE);
 
-  launcher_start (widget, 
-                  item, 
-                  item->argv, 
-                  item->use_sn, 
+  launcher_start (widget,
+                  item,
+                  item->argv,
+                  item->use_sn,
                   item->single_instance);
- 
+
   return TRUE;
 }
 
@@ -160,12 +160,12 @@ const gchar *
 taku_menu_desktop_get_executable (TakuMenuItem *item)
 {
   g_return_val_if_fail (item, NULL);
-  
+
   return item->argv[0];
 }
 
 /*
- * private functions 
+ * private functions
  */
 
 /*
@@ -203,7 +203,7 @@ load_vfolder_dir (TakuMenu *menu, const char *vfolderdir)
       continue;
 
     strcpy (name + strlen (name) - 1, ".directory");
-  
+
     filename = g_build_filename (vfolderdir, name, NULL);
 
     key_file = g_key_file_new ();
@@ -216,7 +216,7 @@ load_vfolder_dir (TakuMenu *menu, const char *vfolderdir)
       goto done;
     }
 
-    matches = g_key_file_get_string_list (key_file, "Desktop Entry", 
+    matches = g_key_file_get_string_list (key_file, "Desktop Entry",
                                           "Match", NULL, NULL);
     if (matches == NULL)
       goto done;
@@ -241,7 +241,7 @@ load_vfolder_dir (TakuMenu *menu, const char *vfolderdir)
       for (l = matches; *l; l++)
         if (strcmp (*l, "meta-fallback") == 0)
           priv->fallback_category = category;
-    
+
   done:
     g_key_file_free (key_file);
     g_free (filename);
@@ -251,20 +251,20 @@ load_vfolder_dir (TakuMenu *menu, const char *vfolderdir)
 }
 
 static void
-match_category (TakuLauncherCategory  *category, 
-                TakuMenuItem          *item, 
+match_category (TakuLauncherCategory  *category,
+                TakuMenuItem          *item,
                 gboolean              *placed)
 {
   char **groups;
   char **match;
-  
+
   for (match = category->matches; *match; match++) {
     /* Add all tiles to the all group */
     if (strcmp (*match, "meta-all") == 0) {
       item->categories = g_list_append (item->categories, category);
       return;
     }
-    
+
     for (groups = item->cats; *groups; groups++) {
       if (strcmp (*match, *groups) == 0) {
         item->categories = g_list_append (item->categories, category);
@@ -280,13 +280,13 @@ set_groups (TakuMenu *menu, TakuMenuItem *item)
 {
   gboolean placed = FALSE;
   GList *l;
-  
+
   for (l = menu->priv->categories; l ; l = l->next) {
     match_category (l->data, item, &placed);
   }
 
   if (!placed && menu->priv->fallback_category)
-    item->categories = g_list_append (item->categories, 
+    item->categories = g_list_append (item->categories,
                                       menu->priv->fallback_category);
 }
 
@@ -343,7 +343,7 @@ load_desktop_file (TakuMenu *menu, const char *filename)
   GKeyFile *key_file;
   GError *err = NULL;
   gchar *exec, *cats;
-  
+
   g_assert (filename);
   g_return_val_if_fail (TAKU_IS_MENU (menu), NULL);
   priv = menu->priv;
@@ -360,12 +360,12 @@ load_desktop_file (TakuMenu *menu, const char *filename)
     g_error_free (err);
     return NULL;
   }
-  
+
   if (get_desktop_boolean (key_file, "NoDisplay", FALSE)) {
     g_key_file_free (key_file);
     return NULL;
   }
-  
+
   /* This is important, so read it first to simplyfy cleanup */
   exec = get_desktop_string (key_file, "Exec");
   if (exec == NULL) {
@@ -376,7 +376,7 @@ load_desktop_file (TakuMenu *menu, const char *filename)
 
   /* Okay, were good to go */
   item = g_slice_new0 (TakuMenuItem);
-  
+
   item->path = g_strdup (filename);
   item->name = get_desktop_string (key_file, "Name");
   item->description = get_desktop_string (key_file, "Comment");
@@ -384,18 +384,18 @@ load_desktop_file (TakuMenu *menu, const char *filename)
   item->use_sn = get_desktop_boolean (key_file, "StartupNotify", FALSE);
   item->single_instance = get_desktop_boolean (key_file,
                                                "X-MB-SingleInstance", FALSE)
-                          || get_desktop_boolean (key_file, 
+                          || get_desktop_boolean (key_file,
                                                   "SingleInstance", FALSE);
   item->argv = exec_to_argv (exec);
   g_free (exec);
-  
+
   cats = get_desktop_string (key_file, "Categories");
   if (cats == NULL)
     cats = g_strdup ("");
   item->cats = g_strsplit (cats, ";", -1);
   g_free (cats);
-  
-  
+
+
   set_groups (menu, item);
   priv->items = g_list_append (priv->items, item);
   g_hash_table_insert (priv->path_items_hash, item->path, item);
@@ -414,7 +414,7 @@ monitor (const char *directory)
 
   if (!with_inotify)
     return;
-  
+
   sub = _ih_sub_new (directory, NULL, NULL);
   _ip_start_watching (sub);
 }
@@ -433,9 +433,9 @@ find_and_destroy (GtkWidget *widget, gpointer data)
   tile = TAKU_LAUNCHER_TILE (widget);
   if (!tile)
     return;
-  
+
   removed = data;
-  
+
   filename = taku_launcher_tile_get_filename (tile);
   if (strcmp (removed, filename) == 0)
     gtk_widget_destroy (widget);
@@ -536,7 +536,7 @@ load_data_dir (TakuMenu *menu, const char *datadir)
 #if WITH_INOTIFY
   monitor (directory);
 #endif
-  
+
   dir = g_dir_open (directory, 0, &error);
   if (error) {
     g_warning ("Cannot read %s: %s", directory, error->message);
@@ -547,7 +547,7 @@ load_data_dir (TakuMenu *menu, const char *datadir)
 
   while ((name = g_dir_read_name (dir)) != NULL) {
     char *filename;
-  
+
     if (! g_str_has_suffix (name, ".desktop"))
       continue;
 
@@ -576,7 +576,7 @@ static void
 taku_menu_finalize (GObject *menu)
 {
   TakuMenuPrivate *priv;
-  
+
   g_return_if_fail (TAKU_IS_MENU (menu));
   priv = TAKU_MENU(menu)->priv;
 
@@ -588,12 +588,12 @@ static void
 taku_menu_class_init (TakuMenuClass *klass)
 {
   GObjectClass *obj_class = G_OBJECT_CLASS (klass);
-  
+
   obj_class->finalize = taku_menu_finalize;
-  obj_class->dispose = taku_menu_dispose; 
-  
+  obj_class->dispose = taku_menu_dispose;
+
   /* Class signals */
-  _menu_signals[ITEM_ADDED] = 
+  _menu_signals[ITEM_ADDED] =
     g_signal_new ("item-added",
                   G_OBJECT_CLASS_TYPE (obj_class),
                   G_SIGNAL_RUN_LAST,
@@ -602,7 +602,7 @@ taku_menu_class_init (TakuMenuClass *klass)
                   g_cclosure_marshal_VOID__POINTER,
                   G_TYPE_NONE, 1, G_TYPE_POINTER);
 
-  _menu_signals[ITEM_REMOVED] = 
+  _menu_signals[ITEM_REMOVED] =
     g_signal_new ("item-removed",
                   G_OBJECT_CLASS_TYPE (obj_class),
                   G_SIGNAL_RUN_LAST,
@@ -642,10 +642,10 @@ taku_menu_init (TakuMenu *menu)
     load_vfolder_dir (menu, PKGDATADIR "/vfolders");
   g_free (vfolder_dir);
 
-  /* 
-   * Load all desktop files in the system data directories, and the user data 
+  /*
+   * Load all desktop files in the system data directories, and the user data
    * directory. TODO: would it be best to do this in an idle handler and
-   * populate the desktop incrementally? 
+   * populate the desktop incrementally?
    */
   for (dirs = g_get_system_data_dirs (); *dirs; dirs++) {
     load_data_dir (menu, *dirs);
@@ -653,8 +653,8 @@ taku_menu_init (TakuMenu *menu)
   load_data_dir (menu, g_get_user_data_dir ());
 }
 
-/* 
- * Expected to create a list of TakuLauncherCategorys and TakuMenuItems 
+/*
+ * Expected to create a list of TakuLauncherCategorys and TakuMenuItems
  */
 TakuMenu*
 taku_menu_get_default ()
@@ -663,6 +663,6 @@ taku_menu_get_default ()
 
   if (menu == NULL)
     menu = g_object_new (TAKU_TYPE_MENU, NULL);
-  
+
   return menu;
 }
