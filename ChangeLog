@@ -1,3 +1,8 @@
+2008-12-04  Ross Burton  <ross@linux.intel.com>
+
+	* libtaku/taku-menu-desktop.c:
+	Load desktop files recursively.
+
 2008-09-29  Rob Bradford  <rob@linux.intel.com>
 
 	* libtaku/taku-menu-desktop.c (load_desktop_file), (_remove_item),
@@ -69,7 +74,7 @@
 	* libtaku/inotify/*:
 	Don't use local copies of system headers which are useless because
 	they don't believe that ARM support inotify...
-	
+
 	* libtaku/taku-menu-desktop.c:
 	Update to use system headers.	
 

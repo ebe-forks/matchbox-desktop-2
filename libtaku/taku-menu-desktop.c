@@ -508,28 +508,24 @@ inotify_event (ik_event_t *event, inotify_sub *sub)
 }
 #endif
 
-
 /*
- * Load all .desktop files in @datadir/applications/.
+ * Recursively load all desktop files in @directory
  */
 static void
-load_data_dir (TakuMenu *menu, const char *datadir)
+load_desktop_files (TakuMenu *menu, const char *directory)
 {
   TakuMenuPrivate *priv = NULL;
   GError *error = NULL;
   GDir *dir;
-  char *directory;
   const char *name;
 
-  g_assert (datadir);
-  g_return_if_fail (TAKU_IS_MENU (menu));
-  priv = menu->priv;
+  g_assert (menu);
+  g_assert (directory);
 
-  directory = g_build_filename (datadir, "applications", NULL);
+  priv = menu->priv;
 
   /* Check if the directory exists */
   if (! g_file_test (directory, G_FILE_TEST_IS_DIR)) {
-    g_free (directory);
     return;
   }
 
@@ -541,27 +537,42 @@ load_data_dir (TakuMenu *menu, const char *datadir)
   if (error) {
     g_warning ("Cannot read %s: %s", directory, error->message);
     g_error_free (error);
-    g_free (directory);
     return;
   }
 
   while ((name = g_dir_read_name (dir)) != NULL) {
     char *filename;
 
-    if (! g_str_has_suffix (name, ".desktop"))
-      continue;
-
     filename = g_build_filename (directory, name, NULL);
 
-    load_desktop_file (menu, filename);
+    if (g_file_test (filename, G_FILE_TEST_IS_DIR)) {
+      load_desktop_files (menu, filename);
+    } else if (g_file_test (filename, G_FILE_TEST_IS_REGULAR) &&
+               g_str_has_suffix (name, ".desktop")) {
+      load_desktop_file (menu, filename);
+    }
 
     g_free (filename);
   }
 
-  g_free (directory);
   g_dir_close (dir);
 }
 
+/*
+ * Load all .desktop files in @datadir/applications/.
+ */
+static void
+load_data_dir (TakuMenu *menu, const char *datadir)
+{
+  char *directory;
+
+  g_return_if_fail (TAKU_IS_MENU (menu));
+  g_return_if_fail (datadir);
+
+  directory = g_build_filename (datadir, "applications", NULL);
+  load_desktop_files (menu, directory);
+  g_free (directory);
+}
 
 
 /* GObject stuff */
