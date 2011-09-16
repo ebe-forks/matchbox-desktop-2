@@ -93,7 +93,9 @@ x_monitor_workarea (GdkScreen *screen, WorkAreaFunc cb)
   
   root = gdk_screen_get_root_window (screen);
   
-  gdk_window_set_events (root, GDK_PROPERTY_NOTIFY);
+  gdk_window_set_events (root,
+                         gdk_window_get_events (root) |
+                         GDK_PROPERTY_CHANGE_MASK);
   gdk_window_add_filter (root, workarea_property_filter, cb);
   
   net_workarea_changed (cb, root);
