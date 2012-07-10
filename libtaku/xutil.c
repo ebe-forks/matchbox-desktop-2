@@ -32,7 +32,7 @@ x_strerror (int code)
 
   s = g_malloc (BUFFER_SIZE);
 
-  XGetErrorText (GDK_DISPLAY (), code, s, BUFFER_SIZE);
+  XGetErrorText (gdk_x11_get_default_xdisplay (), code, s, BUFFER_SIZE);
 
   return s;
 }
@@ -48,7 +48,7 @@ net_workarea_changed (WorkAreaFunc cb, GdkWindow *window)
   Atom workarea_atom = gdk_x11_get_xatom_by_name ("_NET_WORKAREA");
   
   gdk_error_trap_push ();
-  result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (),
+  result = XGetWindowProperty (gdk_x11_get_default_xdisplay (), GDK_ROOT_WINDOW (),
                                workarea_atom, 0L, 4L, False,
                                XA_CARDINAL, &real_type, &real_format,
                                &items_read, &items_left,
@@ -122,7 +122,7 @@ x_window_activate (Window win, guint32 timestamp)
   ev.data.l[3] = 0;
   ev.data.l[4] = 0;
 
-  XSendEvent (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+  XSendEvent (gdk_x11_get_default_xdisplay (), GDK_ROOT_WINDOW (), 
 	      False, SubstructureRedirectMask, (XEvent*)&ev);
 }
 
@@ -142,7 +142,7 @@ mb_single_instance_get_window (const char *bin_name)
   unsigned char *p, *key = NULL, *value = NULL;
   Window win_found;
 
-  result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+  result = XGetWindowProperty (gdk_x11_get_default_xdisplay (), GDK_ROOT_WINDOW (), 
 			       atom_exec_map,
 			       0, 10000L,
 			       False, XA_STRING,
@@ -200,7 +200,7 @@ mb_single_instance_is_starting (const char *bin_name)
   unsigned long n_items, bytes_after;
   int result;
 
-  result = XGetWindowProperty (GDK_DISPLAY (), GDK_ROOT_WINDOW (), 
+  result = XGetWindowProperty (gdk_x11_get_default_xdisplay (), GDK_ROOT_WINDOW (), 
 			       atom_exec_map,
 			       0, 10000L,
 			       False, XA_STRING,
