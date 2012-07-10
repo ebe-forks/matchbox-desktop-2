@@ -19,7 +19,7 @@
 #ifndef _TAKU_TILE
 #define _TAKU_TILE
 
-#include <gtk/gtkeventbox.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

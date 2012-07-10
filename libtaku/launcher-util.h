@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2007 OpenedHand Ltd
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -20,8 +20,7 @@
 #define HAVE_LAUNCHER_UTIL_H
 
 #include <glib.h>
-#include <gtk/gtkicontheme.h>
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 #include "taku-menu.h"
 
@@ -30,9 +29,9 @@
 char **
 exec_to_argv (const char *exec);
 
-void 
-launcher_start (GtkWidget *widget, 
-                TakuMenuItem *item, 
+void
+launcher_start (GtkWidget *widget,
+                TakuMenuItem *item,
                 gchar **argv,
                 gboolean use_sn,
                 gboolean single_instance);

@@ -19,7 +19,7 @@
 #ifndef _TAKU_CATEGORY_BAR
 #define _TAKU_CATEGORY_BAR
 
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 #include <libtaku/taku-table.h>
 
 G_BEGIN_DECLS

@@ -19,7 +19,7 @@
 #ifndef _TAKU_TABLE
 #define _TAKU_TABLE
 
-#include <gtk/gtktable.h>
+#include <gtk/gtk.h>
 #include "taku-tile.h"
 
 G_BEGIN_DECLS
