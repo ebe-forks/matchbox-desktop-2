@@ -18,7 +18,7 @@ if test x$inotify_support = xyes; then
         AC_DEFINE(WITH_INOTIFY, [1], [If inotify is enabled])
 fi
 
-PKG_CHECK_MODULES(GTK, [glib-2.0 >= 2.14 gtk+-2.0 x11])
+PKG_CHECK_MODULES(GTK, [glib-2.0 >= 2.14 gtk+-3.0 x11])
 
 AC_ARG_ENABLE(startup_notification,
         AC_HELP_STRING([--disable-startup-notification], [disable startup notification support]),

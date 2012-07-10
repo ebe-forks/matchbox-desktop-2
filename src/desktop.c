@@ -180,7 +180,7 @@ create_desktop (void)
   gtk_container_add (GTK_CONTAINER (window), fixed);
 
   /* Main VBox */
-  box = gtk_vbox_new (FALSE, 0);
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_widget_show (box);
   gtk_fixed_put (GTK_FIXED (fixed), box, 0, 0);
   /* Set a sane default in case there is no work area defined yet */

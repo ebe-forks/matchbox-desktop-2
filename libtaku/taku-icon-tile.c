@@ -65,13 +65,13 @@ tile_arrange (TakuIconTile *tile)
     case GTK_ORIENTATION_VERTICAL :
       gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.5, 0.5);
       gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.5, 0.5);
-      box = gtk_vbox_new (FALSE, 6);
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
       break;
     default:
     case GTK_ORIENTATION_HORIZONTAL :
       gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.0, 0.5);
       gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.0, 0.5);
-      box = gtk_hbox_new (FALSE, 6);
+      box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       break;
     }
     
@@ -79,7 +79,7 @@ tile_arrange (TakuIconTile *tile)
     
     gtk_box_pack_start (GTK_BOX (box), tile->priv->icon, FALSE, FALSE, 0);
     
-    vbox = gtk_vbox_new (FALSE, 6);
+    vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
     gtk_widget_show (vbox);
 
     gtk_box_pack_start (GTK_BOX (vbox), tile->priv->primary, TRUE, TRUE, 0);

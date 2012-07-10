@@ -128,7 +128,7 @@ im_context_commit_cb (GtkIMContext *context,
     }
 
     tile = g_sequence_get (iter);
-    if (!GTK_WIDGET_VISIBLE (tile))
+    if (!gtk_widget_get_visible (GTK_WIDGET (tile)))
       goto next;
 
     text = taku_tile_get_search_key (tile);
@@ -155,20 +155,25 @@ next:
 static gboolean
 on_tile_focus (GtkWidget *widget, GdkEventFocus *event, gpointer user_data)
 {
-  GtkWidget *viewport = GTK_WIDGET (user_data)->parent;
+  GtkWidget *container = GTK_WIDGET (user_data);
+  GtkWidget *viewport = gtk_widget_get_parent (container);
+  GtkAllocation widget_alloc, viewport_alloc;
   GtkAdjustment *adjustment;
-  
-  /* If the lowest point of the tile is lower than the height of the viewport, 
+
+  gtk_widget_get_allocation (widget, &widget_alloc);
+  gtk_widget_get_allocation (viewport, &viewport_alloc);
+
+  /* If the lowest point of the tile is lower than the height of the viewport,
    * or if the top of the tile is higher than the viewport is... */
-  if (widget->allocation.y +
-      widget->allocation.height > viewport->allocation.height ||
-      widget->allocation.y < viewport->allocation.height) {
-    adjustment = gtk_viewport_get_vadjustment (GTK_VIEWPORT (viewport));
-    
+  if (widget_alloc.y +
+      widget_alloc.height > viewport_alloc.height ||
+      widget_alloc.y < viewport_alloc.height) {
+    adjustment = gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (viewport));
+
     gtk_adjustment_clamp_page (adjustment,
-                               widget->allocation.y,
-                               widget->allocation.y +
-                               widget->allocation.height);
+                               widget_alloc.y,
+                               widget_alloc.y +
+                               widget_alloc.height);
   }
 
   return FALSE;
@@ -216,7 +221,7 @@ reflow (TakuTable *table)
   int i;
 
   /* Only reflow when necessary */
-  if (!GTK_WIDGET_REALIZED (table))
+  if (!gtk_widget_get_realized (GTK_WIDGET (table)))
     return;
 
   /* Remove dummies */
@@ -320,21 +325,25 @@ calculate_columns (GtkWidget *widget)
   PangoFontMetrics *metrics;
   int width, new_cols;
   guint cell_text_width = DEFAULT_WIDTH;
+  GtkAllocation allocation;
+
+  gtk_widget_get_allocation (widget, &allocation);
 
   /* If we are currently reflowing the tiles, or the final allocation hasn't
      been decided yet, return */
-  if (!GTK_WIDGET_REALIZED (widget) || table->priv->reflowing ||
-      widget->allocation.width <= 1)
+  if (!gtk_widget_get_realized (widget) ||
+      table->priv->reflowing ||
+      allocation.width <= 1)
     return;
 
   context = gtk_widget_get_pango_context (widget);
-  metrics = pango_context_get_metrics (context, widget->style->font_desc, NULL);
+  metrics = pango_context_get_metrics (context, gtk_widget_get_style (widget)->font_desc, NULL);
 
   gtk_widget_style_get (widget, "cell-text-width", &cell_text_width, NULL);
 
   width = PANGO_PIXELS
           (cell_text_width * pango_font_metrics_get_approximate_char_width (metrics));
-  new_cols = MAX (1, widget->allocation.width / width);
+  new_cols = MAX (1, allocation.width / width);
 
   if (table->priv->columns != new_cols) {
     table->priv->columns = new_cols;
@@ -352,7 +361,7 @@ taku_table_realize (GtkWidget *widget)
 
   (* GTK_WIDGET_CLASS (taku_table_parent_class)->realize) (widget);
 
-  gtk_im_context_set_client_window (self->priv->im_context, widget->window);
+  gtk_im_context_set_client_window (self->priv->im_context, gtk_widget_get_window (widget));
 
   calculate_columns (widget);
 }
@@ -368,15 +377,11 @@ taku_table_unrealize (GtkWidget *widget)
 }
 
 static void
-taku_table_size_allocate (GtkWidget     *widget,
-                          GtkAllocation *allocation)
+on_size_allocate (GtkWidget     *widget,
+                          GtkAllocation *allocation,
+                          gpointer       user_data)
 {
-  widget->allocation = *allocation;
-
   calculate_columns (widget);
-
-  (* GTK_WIDGET_CLASS (taku_table_parent_class)->size_allocate)
-    (widget, allocation);
 }
 
 static void
@@ -438,7 +443,7 @@ taku_table_grab_focus (GtkWidget *widget)
   while (!g_sequence_iter_is_end (iter)) {
     GtkWidget *widget = g_sequence_get (iter);
 
-    if (GTK_WIDGET_VISIBLE (widget)) {
+    if (gtk_widget_get_visible (widget)) {
       gtk_widget_grab_focus (widget);
 
       break;
@@ -472,16 +477,15 @@ taku_table_class_init (TakuTableClass *klass)
   g_type_class_add_private (klass, sizeof (TakuTablePrivate));
 
   object_class->finalize     = taku_table_finalize;
-  
+
   widget_class->realize         = taku_table_realize;
   widget_class->unrealize       = taku_table_unrealize;
-  widget_class->size_allocate   = taku_table_size_allocate;
   widget_class->style_set       = taku_table_style_set;
   widget_class->focus_in_event  = taku_table_focus_in_event;
   widget_class->focus_out_event = taku_table_focus_out_event;
   widget_class->key_press_event = taku_table_key_press_event;
   widget_class->grab_focus      = taku_table_grab_focus;
-  
+
   container_class->add    = container_add;
   container_class->remove = container_remove;
 
@@ -497,6 +501,8 @@ static void
 taku_table_init (TakuTable *self)
 {
   self->priv = GET_PRIVATE (self);
+
+  g_signal_connect (self, "size-allocate", G_CALLBACK (on_size_allocate), NULL);
 
   gtk_container_set_border_width (GTK_CONTAINER (self), 6);
   gtk_table_set_row_spacings (GTK_TABLE (self), 6);

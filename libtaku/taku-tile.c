@@ -29,32 +29,23 @@ enum {
 static guint signals[LAST_SIGNAL];
 
 static gboolean
-taku_tile_expose (GtkWidget      *widget,
-                  GdkEventExpose *event)
+taku_tile_draw (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
-  if (GTK_WIDGET_DRAWABLE (widget)) {
-    gint x, y, width, height;
-    GtkStateType state;
+  GtkStyleContext *context;
+  int width, height;
 
-    x = widget->allocation.x;
-    y = widget->allocation.y;
-    width = widget->allocation.width;
-    height = widget->allocation.height;
+  context = gtk_widget_get_style_context (widget);
 
-    state = GTK_WIDGET_STATE (widget);
-    /* If this isn't isn't being drawn active and it's focused, highlight it */
-    if (state != GTK_STATE_ACTIVE && GTK_WIDGET_HAS_FOCUS (widget)) {
-      state = GTK_STATE_SELECTED;
-    
+  width = gtk_widget_get_allocated_width (widget);
+  height = gtk_widget_get_allocated_height (widget);
 
-      gtk_paint_flat_box (widget->style, widget->window,
-                          state, GTK_SHADOW_NONE,
-                          &event->area, widget, NULL,
-                          x, y, width, height);
-    }
-    (* GTK_WIDGET_CLASS (taku_tile_parent_class)->expose_event) (widget, event);
+  if (gtk_style_context_get_state (context) != GTK_STATE_FLAG_ACTIVE &&
+      gtk_widget_has_focus (widget)) {
+    gtk_style_context_set_state (context, GTK_STATE_SELECTED);
+
+    gtk_render_background (context, cr, 0, 0, width, height);
   }
-  
+
   return FALSE;
 }
 
@@ -123,7 +114,6 @@ taku_tile_class_init (TakuTileClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  widget_class->expose_event = taku_tile_expose;
   widget_class->button_release_event = taku_tile_button_release;
   widget_class->enter_notify_event = taku_tile_enter_notify;
   widget_class->leave_notify_event = taku_tile_leave_notify;
@@ -152,9 +142,11 @@ taku_tile_class_init (TakuTileClass *klass)
 static void
 taku_tile_init (TakuTile *self)
 {
-  GTK_WIDGET_SET_FLAGS (GTK_WIDGET (self), GTK_CAN_FOCUS);
+  gtk_widget_set_can_focus (GTK_WIDGET (self), TRUE);
   gtk_event_box_set_visible_window (GTK_EVENT_BOX (self), FALSE);
   gtk_container_set_border_width (GTK_CONTAINER (self), 6);
+
+  g_signal_connect (self, "draw", G_CALLBACK (taku_tile_draw), NULL);
 }
 
 GtkWidget *

@@ -135,11 +135,13 @@ position_menu (GtkMenu *menu,
                int *x, int *y, gboolean *push_in, gpointer user_data)
 {
   GtkWidget *widget = GTK_WIDGET (user_data);
+  GtkAllocation allocation;
 
-  gdk_window_get_origin (widget->window, x, y);
+  gdk_window_get_origin (gtk_widget_get_window (widget), x, y);
+  gtk_widget_get_allocation (widget, &allocation);
 
-  *x += widget->allocation.x;
-  *y += widget->allocation.y + widget->allocation.height;
+  *x += allocation.x;
+  *y += allocation.y + allocation.height;
 
   *push_in = TRUE;
 }
@@ -172,6 +174,7 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
   TakuCategoryBar *bar;
   TakuCategoryBarPrivate *priv;
   GtkWidget *menu;
+  GtkAllocation allocation;
   GList *l;
 
   bar = TAKU_CATEGORY_BAR (user_data);
@@ -183,7 +186,8 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
 
   /* Create menu */
   menu = gtk_menu_new ();
-  gtk_widget_set_size_request (menu, GTK_WIDGET (button)->allocation.width, -1);
+  gtk_widget_get_allocation (button, &allocation);
+  gtk_widget_set_size_request (menu, allocation.width, -1);
 
   g_signal_connect (menu, "selection-done", G_CALLBACK (popdown_menu), button);
 

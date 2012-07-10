@@ -266,23 +266,18 @@ launcher_start (GtkWidget *widget,
                                   gtk_get_current_event_time ());
   }
 #endif
-  
-  /* GTK+ 2.11.3 has a gdk_spawn_on_screen which doesn't trash envp */
-#if GTK_CHECK_VERSION(2,11,3)
-  if (!gdk_spawn_on_screen (gtk_widget_get_screen (widget),
-#else
-  if (!g_spawn_async (
-#endif
-                            NULL, argv, NULL,
-                            G_SPAWN_SEARCH_PATH,
-                            child_setup,
+
+  /* TODO: use GAppInfo */
+  if (!g_spawn_async (NULL, argv, NULL,
+                      G_SPAWN_SEARCH_PATH,
+                      child_setup,
 #ifdef USE_LIBSN
-                            use_sn ? context : NULL,
+                      use_sn ? context : NULL,
 #else
-                            NULL,
+                      NULL,
 #endif
-                            NULL,
-                            &error)) {
+                      NULL,
+                      &error)) {
     g_warning ("Cannot launch %s: %s", argv[0], error->message);
     g_error_free (error);
 #ifdef USE_LIBSN
