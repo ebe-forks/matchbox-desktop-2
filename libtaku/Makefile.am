@@ -1,7 +1,7 @@
 PKGDATADIR = $(datadir)/matchbox
 
 AM_CPPFLAGS = $(GTK_CFLAGS) $(SN_CFLAGS) -DPKGDATADIR=\"$(PKGDATADIR)\"
-AM_CFLAGS = -Wall
+AM_CFLAGS = $(WARN_CFLAGS)
 
 noinst_LIBRARIES = libtaku.a
 libtaku_a_SOURCES = \

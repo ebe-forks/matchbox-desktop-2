@@ -10,6 +10,8 @@ AC_PROG_CPP
 AC_PROG_CC
 AC_PROG_RANLIB
 
+GNOME_COMPILE_WARNINGS
+
 AC_CHECK_HEADERS([sys/inotify.h], inotify_support=yes, inotify_support=no)
 AM_CONDITIONAL(HAVE_INOTIFY, [test "$inotify_support" = "yes"])
 if test x$inotify_support = xyes; then

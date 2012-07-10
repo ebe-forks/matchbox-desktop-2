@@ -1,5 +1,5 @@
 AM_CPPFLAGS = $(GTK_CFLAGS) $(DBUS_CFLAGS) $(SN_CFLAGS) -I$(top_srcdir)
-AM_CFLAGS = -Wall
+AM_CFLAGS = $(WARN_CFLAGS)
 
 bin_PROGRAMS = matchbox-desktop
 matchbox_desktop_SOURCES = \
