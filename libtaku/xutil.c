@@ -37,7 +37,7 @@ x_strerror (int code)
   return s;
 }
 
-void
+static void
 net_workarea_changed (WorkAreaFunc cb, GdkWindow *window)
 {
   Atom real_type;
