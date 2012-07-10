@@ -5,7 +5,6 @@ AM_CFLAGS = $(WARN_CFLAGS)
 
 noinst_LIBRARIES = libtaku.a
 libtaku_a_SOURCES = \
-	eggsequence.c eggsequence.h \
 	launcher-util.c launcher-util.h \
 	taku-icon-tile.c taku-icon-tile.h \
 	taku-launcher-tile.c taku-launcher-tile.h \

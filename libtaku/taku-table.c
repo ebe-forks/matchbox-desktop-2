@@ -19,7 +19,6 @@
 #include <config.h>
 #include <gtk/gtk.h>
 #include <string.h>
-#include "eggsequence.h"
 #include "taku-table.h"
 
 G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
@@ -36,7 +35,7 @@ struct _TakuTablePrivate
   int x, y;
   gboolean reflowing;
 
-  EggSequence *seq;
+  GSequence *seq;
 
   gpointer filter;
 
@@ -102,7 +101,7 @@ im_context_commit_cb (GtkIMContext *context,
                       gpointer      user_data)
 {
   TakuTable *table = TAKU_TABLE (user_data);
-  EggSequenceIter *begin_iter, *iter;
+  GSequenceIter *begin_iter, *iter;
   GtkWidget *toplevel, *focused;
   char *norm_str;
 
@@ -111,10 +110,10 @@ im_context_commit_cb (GtkIMContext *context,
   toplevel = gtk_widget_get_toplevel (GTK_WIDGET (table));
   focused = gtk_window_get_focus (GTK_WINDOW (toplevel));
   if (focused)
-    begin_iter = egg_sequence_search (table->priv->seq, 
+    begin_iter = g_sequence_search (table->priv->seq, 
                                       focused, compare_tiles, NULL);
   else
-    begin_iter = egg_sequence_get_begin_iter (table->priv->seq);
+    begin_iter = g_sequence_get_begin_iter (table->priv->seq);
 
   iter = begin_iter;
   do {
@@ -122,13 +121,13 @@ im_context_commit_cb (GtkIMContext *context,
     const char *text;
     char *norm_text;
 
-    if (egg_sequence_iter_is_end (iter)) {
-      iter = egg_sequence_get_begin_iter (table->priv->seq);
+    if (g_sequence_iter_is_end (iter)) {
+      iter = g_sequence_get_begin_iter (table->priv->seq);
       if (iter == begin_iter)
         break;
     }
 
-    tile = egg_sequence_get (iter);
+    tile = g_sequence_get (iter);
     if (!GTK_WIDGET_VISIBLE (tile))
       goto next;
 
@@ -147,7 +146,7 @@ im_context_commit_cb (GtkIMContext *context,
     g_free (norm_text);
 
 next:
-    iter = egg_sequence_iter_next (iter);
+    iter = g_sequence_iter_next (iter);
   } while (iter != begin_iter);
 
   g_free (norm_str);
@@ -235,11 +234,11 @@ reflow (TakuTable *table)
   table->priv->x = table->priv->y = 0;
 
   table->priv->reflowing = TRUE;
-  egg_sequence_foreach (table->priv->seq, reflow_foreach, table);
+  g_sequence_foreach (table->priv->seq, reflow_foreach, table);
   table->priv->reflowing = FALSE;
 
   /* Add dummy items if necessary to get required amount of columns */
-  for (i = egg_sequence_get_length (table->priv->seq);
+  for (i = g_sequence_get_length (table->priv->seq);
        i < table->priv->columns; i++) {
     GtkWidget *dummy = gtk_label_new (NULL);
     gtk_widget_show (dummy);
@@ -275,7 +274,7 @@ container_add (GtkContainer *container, GtkWidget *widget)
   g_return_if_fail (self);
   g_return_if_fail (TAKU_IS_TILE (widget));
 
-  egg_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
+  g_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
 
   gtk_table_attach (GTK_TABLE (container), widget, 0, 1, 0, 1,
                     GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
@@ -289,15 +288,15 @@ static void
 container_remove (GtkContainer *container, GtkWidget *widget)
 {
   TakuTable *self = TAKU_TABLE (container);
-  EggSequenceIter *iter;
+  GSequenceIter *iter;
 
   g_return_if_fail (self);
 
   /* Find the appropriate iter first */
-  iter = egg_sequence_search (self->priv->seq,
+  iter = g_sequence_search (self->priv->seq,
                               widget, compare_tiles_exact, NULL);
-  iter = egg_sequence_iter_prev (iter);
-  if (egg_sequence_iter_is_end (iter) || egg_sequence_get (iter) != widget) {
+  iter = g_sequence_iter_prev (iter);
+  if (g_sequence_iter_is_end (iter) || g_sequence_get (iter) != widget) {
     /* We have here a dummy, or something that is not contained */
     (* GTK_CONTAINER_CLASS (taku_table_parent_class)->remove)
                                                 (container, widget);
@@ -306,7 +305,7 @@ container_remove (GtkContainer *container, GtkWidget *widget)
   }
 
   /* And then remove it */
-  egg_sequence_remove (iter);
+  g_sequence_remove (iter);
 
   (* GTK_CONTAINER_CLASS (taku_table_parent_class)->remove) (container, widget);
 
@@ -433,11 +432,11 @@ static void
 taku_table_grab_focus (GtkWidget *widget)
 {
   TakuTable *table = TAKU_TABLE (widget);
-  EggSequenceIter *iter;
+  GSequenceIter *iter;
 
-  iter = egg_sequence_get_begin_iter (table->priv->seq);
-  while (!egg_sequence_iter_is_end (iter)) {
-    GtkWidget *widget = egg_sequence_get (iter);
+  iter = g_sequence_get_begin_iter (table->priv->seq);
+  while (!g_sequence_iter_is_end (iter)) {
+    GtkWidget *widget = g_sequence_get (iter);
 
     if (GTK_WIDGET_VISIBLE (widget)) {
       gtk_widget_grab_focus (widget);
@@ -445,7 +444,7 @@ taku_table_grab_focus (GtkWidget *widget)
       break;
     }
 
-    iter = egg_sequence_iter_next (iter);
+    iter = g_sequence_iter_next (iter);
   }
 }
 
@@ -454,7 +453,7 @@ taku_table_finalize (GObject *object)
 {
   TakuTable *table = TAKU_TABLE (object);
 
-  egg_sequence_free (table->priv->seq);
+  g_sequence_free (table->priv->seq);
 
   g_list_free (table->priv->dummies);
 
@@ -506,7 +505,7 @@ taku_table_init (TakuTable *self)
 
   self->priv->reflowing = FALSE;
 
-  self->priv->seq = egg_sequence_new (NULL);
+  self->priv->seq = g_sequence_new (NULL);
 
   self->priv->filter = NULL;
 
