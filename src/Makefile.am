@@ -16,3 +16,5 @@ matchbox_desktop_LDADD = \
 if HAVE_INOTIFY
 matchbox_desktop_LDADD += $(top_builddir)/libtaku/libinotify.a
 endif
+
+-include $(top_srcdir)/git.mk

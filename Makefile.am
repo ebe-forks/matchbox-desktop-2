@@ -1,13 +1,12 @@
 SUBDIRS = libtaku src
 
-# make maintainer-clean should remove *everything* 
 MAINTAINERCLEANFILES = \
-	aclocal.m4 \
-	compile \
-	config.guess \
-	config.h.in \
-	configure \
-	depcomp \
-	install-sh \
-	Makefile.in \
-	missing
+	$(srcdir)/INSTALL \
+	$(srcdir)/aclocal.m4 \
+	$(srcdir)/config.h.in \
+	$(srcdir)/depcomp \
+	$(srcdir)/install-sh \
+	$(srcdir)/missing \
+	`find "$(srcdir)" -type f -name Makefile.in -print`
+
+-include $(top_srcdir)/git.mk

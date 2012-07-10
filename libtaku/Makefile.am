@@ -25,3 +25,5 @@ libinotify_a_SOURCES = \
 	inotify/inotify-diag.c inotify/inotify-diag.h \
 	inotify/local_inotify.h inotify/local_inotify_syscalls.h
 endif
+
+-include $(top_srcdir)/git.mk
