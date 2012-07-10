@@ -514,15 +514,12 @@ inotify_event (ik_event_t *event, inotify_sub *sub)
 static void
 load_desktop_files (TakuMenu *menu, const char *directory)
 {
-  TakuMenuPrivate *priv = NULL;
   GError *error = NULL;
   GDir *dir;
   const char *name;
 
   g_assert (menu);
   g_assert (directory);
-
-  priv = menu->priv;
 
   /* Check if the directory exists */
   if (! g_file_test (directory, G_FILE_TEST_IS_DIR)) {
@@ -578,20 +575,9 @@ load_data_dir (TakuMenu *menu, const char *datadir)
 /* GObject stuff */
 
 static void
-taku_menu_dispose (GObject *object)
-{
-  G_OBJECT_CLASS (taku_menu_parent_class)->dispose (object);
-}
-
-static void
 taku_menu_finalize (GObject *menu)
 {
-  TakuMenuPrivate *priv;
-
-  g_return_if_fail (TAKU_IS_MENU (menu));
-  priv = TAKU_MENU(menu)->priv;
-
-
+  /* TODO */
   G_OBJECT_CLASS (taku_menu_parent_class)->finalize (menu);
 }
 
@@ -601,7 +587,6 @@ taku_menu_class_init (TakuMenuClass *klass)
   GObjectClass *obj_class = G_OBJECT_CLASS (klass);
 
   obj_class->finalize = taku_menu_finalize;
-  obj_class->dispose = taku_menu_dispose;
 
   /* Class signals */
   _menu_signals[ITEM_ADDED] =
@@ -668,7 +653,7 @@ taku_menu_init (TakuMenu *menu)
  * Expected to create a list of TakuLauncherCategorys and TakuMenuItems
  */
 TakuMenu*
-taku_menu_get_default ()
+taku_menu_get_default (void)
 {
   static TakuMenu *menu = NULL;
 

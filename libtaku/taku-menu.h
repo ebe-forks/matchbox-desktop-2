@@ -78,7 +78,7 @@ GType taku_menu_get_type (void) G_GNUC_CONST;
  * Expected to create a list of TakuTakuCategorys and TakuMenuItems 
  */
 TakuMenu*
-taku_menu_get_default ();
+taku_menu_get_default (void);
 
 /* 
  * Returns a list of TakuTakuCategorys 
