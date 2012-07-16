@@ -115,14 +115,14 @@ reset_state (gpointer data)
 }
 
 static void
-taku_launcher_tile_clicked (TakuTile *tile)
+taku_launcher_tile_clicked (GtkButton *button, gpointer user_data)
 {
-  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
+  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (button);
 
   gtk_widget_set_state (GTK_WIDGET (tile), GTK_STATE_ACTIVE);
 
   g_timeout_add (500, reset_state, tile);
-  
+
   taku_menu_item_launch (launcher->priv->item, GTK_WIDGET (tile));
 }
 
@@ -141,7 +141,6 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
 
   g_type_class_add_private (klass, sizeof (TakuLauncherTilePrivate));
 
-  tile_class->clicked = taku_launcher_tile_clicked;
   tile_class->matches_filter = taku_launcher_tile_matches_filter;
 
   widget_class->style_set = taku_launcher_tile_style_set;
@@ -161,6 +160,8 @@ static void
 taku_launcher_tile_init (TakuLauncherTile *self)
 {
   self->priv = GET_PRIVATE (self);
+
+  g_signal_connect (self, "clicked", G_CALLBACK (taku_launcher_tile_clicked), NULL);
 }
 
 GtkWidget *

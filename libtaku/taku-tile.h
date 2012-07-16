@@ -46,17 +46,11 @@ G_BEGIN_DECLS
   TAKU_TYPE_TILE, TakuTileClass))
 
 typedef struct {
-  GtkEventBox parent;
-  /*< private >*/
-  /* TODO: move to private struct */
-  gboolean in_tile;
+  GtkButton parent;
 } TakuTile;
 
 typedef struct {
-  GtkEventBoxClass parent_class;
-
-  void (* activate) (TakuTile *tile);
-  void (* clicked) (TakuTile *tile);
+  GtkButtonClass parent_class;
 
   const char *(* get_sort_key) (TakuTile *tile);
   const char *(* get_search_key) (TakuTile *tile);
