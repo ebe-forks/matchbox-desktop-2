@@ -115,9 +115,9 @@ reset_state (gpointer data)
 }
 
 static void
-taku_launcher_tile_clicked (GtkButton *button, gpointer user_data)
+taku_launcher_tile_clicked (GtkButton *tile, gpointer user_data)
 {
-  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (button);
+  TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
 
   gtk_widget_set_state (GTK_WIDGET (tile), GTK_STATE_ACTIVE);
 

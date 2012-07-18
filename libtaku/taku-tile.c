@@ -37,6 +37,8 @@ taku_tile_init (TakuTile *self)
 {
 }
 
+/* TODO steal GtkButton's draw function and comment out the focus draw code */
+
 GtkWidget *
 taku_tile_new (void)
 {
