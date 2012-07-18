@@ -43,32 +43,53 @@ emit_loaded_signal (gpointer user_data)
 
   dbus_connection_send (conn, msg, NULL);
   dbus_message_unref (msg);
-  
+
   /* Flush explicitly because we're too lazy to integrate DBus into the main
      loop. We're only sending a signal, so if we got as far as here it's
      unlikely to block. */
   dbus_connection_flush (conn);
   dbus_connection_unref (conn);
-  
+
   return FALSE;
 }
 #endif
+
+static void
+load_style (GtkWidget *widget)
+{
+  GtkCssProvider *provider;
+  GError *error = NULL;
+
+  provider = gtk_css_provider_new ();
+  gtk_css_provider_load_from_path (GTK_CSS_PROVIDER (provider),
+                                   PKGDATADIR "/style.css", &error);
+  if (error) {
+    g_warning ("Cannot load CSS: %s", error->message);
+    g_error_free (error);
+  } else {
+    gtk_style_context_add_provider_for_screen
+      (gtk_widget_get_screen (widget),
+       GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  }
+  g_object_unref (provider);
+}
 
 int
 main (int argc, char **argv)
 {
   GtkWidget *desktop;
-  
+
   gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
 
 #if WITH_DBUS
   g_idle_add (emit_loaded_signal, NULL);
 #endif
-  
+
   desktop = create_desktop ();
+  load_style (desktop);
   gtk_main ();
   destroy_desktop ();
-  
+
   return 0;
 }

@@ -1,4 +1,9 @@
-AM_CPPFLAGS = $(GTK_CFLAGS) $(DBUS_CFLAGS) $(SN_CFLAGS) -I$(top_srcdir)
+AM_CPPFLAGS = \
+	$(GTK_CFLAGS) \
+	$(DBUS_CFLAGS) \
+	$(SN_CFLAGS) \
+	-I$(top_srcdir) \
+	-DPKGDATADIR=\"$(pkgdatadir)\"
 AM_CFLAGS = $(WARN_CFLAGS)
 
 bin_PROGRAMS = matchbox-desktop
