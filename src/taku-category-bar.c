@@ -66,15 +66,6 @@ make_bold (GtkLabel *label)
   gtk_label_set_attributes (label, list);
 }
 
-/* Make sure arrows request a square amount of space */
-static void
-arrow_size_request (GtkWidget      *widget,
-                    GtkRequisition *requisition,
-                    gpointer        user_data)
-{
-  requisition->width = requisition->height;
-}
-
 /* Changes the current category: Updates the switcher label and table filter */
 static void
 set_category (TakuCategoryBar *bar, GList *category_list_item)
@@ -245,7 +236,6 @@ taku_category_bar_init (TakuCategoryBar *bar)
   gtk_box_pack_start (GTK_BOX (bar), button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
-  g_signal_connect (arrow, "size-request", G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (button), arrow);
   gtk_size_group_add_widget (size_group, arrow);
@@ -278,7 +268,6 @@ taku_category_bar_init (TakuCategoryBar *bar)
   gtk_box_pack_end (GTK_BOX (bar), button, FALSE, TRUE, 0);
 
   arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
-  g_signal_connect (arrow, "size-request", G_CALLBACK (arrow_size_request), NULL);
   gtk_widget_show (arrow);
   gtk_container_add (GTK_CONTAINER (button), arrow);
   gtk_size_group_add_widget (size_group, arrow);
