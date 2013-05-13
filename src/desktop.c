@@ -47,9 +47,9 @@ on_item_added (TakuMenu *menu, TakuMenuItem *item, gpointer null)
   GtkWidget *tile;
 
   tile = taku_launcher_tile_new_from_item (item);
-  
-  if (GTK_IS_WIDGET (tile))
-    gtk_container_add (GTK_CONTAINER (table), tile); 
+
+  if (tile)
+    gtk_container_add (GTK_CONTAINER (table), tile);
 }
 
 static void
@@ -116,7 +116,7 @@ load_items (TakuMenu *menu)
     if (!l->data)
       continue;
     tile = taku_launcher_tile_new_from_item (l->data);
-    if (GTK_IS_WIDGET (tile))
+    if (tile)
       gtk_container_add (GTK_CONTAINER (table), tile);
   }
 
