@@ -160,6 +160,7 @@ create_desktop (void)
   g_signal_connect (window, "delete-event", G_CALLBACK (delete_event_cb), NULL);
   gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
   gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
+  gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 
   screen = gtk_widget_get_screen (window);
   screen_w = gdk_screen_get_width (screen);
