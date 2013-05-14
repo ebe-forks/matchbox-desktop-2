@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2007 OpenedHand Ltd
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -20,8 +20,9 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include "taku-table.h"
+#include "taku-tile.h"
 
-G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_TABLE);
+G_DEFINE_TYPE (TakuTable, taku_table, GTK_TYPE_GRID);
 
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_TABLE, TakuTablePrivate))
@@ -191,9 +192,9 @@ reflow_foreach (gpointer widget, gpointer user_data)
     if (!taku_tile_matches_filter (tile, table->priv->filter)) {
       gtk_container_child_set (container, GTK_WIDGET (widget),
                                "left-attach", 0,
-                               "right-attach", 1,
                                "top-attach", 0,
-                               "bottom-attach", 1,
+                               "width", 1,
+                               "height", 1,
                                NULL);
       gtk_widget_hide (widget);
       return;
@@ -205,9 +206,9 @@ reflow_foreach (gpointer widget, gpointer user_data)
 
   gtk_container_child_set (container, GTK_WIDGET (widget),
                            "left-attach", table->priv->x,
-                           "right-attach", table->priv->x + 1,
                            "top-attach", table->priv->y,
-                           "bottom-attach", table->priv->y + 1,
+                           "width", 1,
+                           "height", 1,
                            NULL);
   if (++table->priv->x >= table->priv->columns) {
     table->priv->x = 0;
@@ -248,23 +249,14 @@ reflow (TakuTable *table)
     GtkWidget *dummy = gtk_label_new (NULL);
     gtk_widget_show (dummy);
 
-    gtk_table_attach (GTK_TABLE (table),
-                      dummy,
-                      table->priv->x,
-                      table->priv->x + 1,
-                      table->priv->y,
-                      table->priv->y + 1,
-                      GTK_FILL | GTK_EXPAND,
-                      GTK_FILL,
-                      0,
-                      0);
+    gtk_grid_attach (GTK_GRID (table),
+                     dummy,
+                     table->priv->x, table->priv->y,
+                     1, 1);
     table->priv->x++;
 
     table->priv->dummies = g_list_prepend (table->priv->dummies, dummy);
   }
-
-  /* Crop table */
-  gtk_table_resize (GTK_TABLE (table), 1, 1);
 }
 
 /*
@@ -281,8 +273,7 @@ container_add (GtkContainer *container, GtkWidget *widget)
 
   g_sequence_insert_sorted (self->priv->seq, widget, compare_tiles, NULL);
 
-  gtk_table_attach (GTK_TABLE (container), widget, 0, 1, 0, 1,
-                    GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
+  gtk_grid_attach (GTK_GRID (container), widget, 0, 1, 1, 1);
 
   reflow (self);
 
@@ -504,9 +495,14 @@ taku_table_init (TakuTable *self)
 
   g_signal_connect (self, "size-allocate", G_CALLBACK (on_size_allocate), NULL);
 
-  gtk_container_set_border_width (GTK_CONTAINER (self), 6);
-  gtk_table_set_row_spacings (GTK_TABLE (self), 6);
-  gtk_table_set_col_spacings (GTK_TABLE (self), 6);
+  g_object_set (self,
+                "border-width", 6,
+                "row-spacing", 6,
+                "column-spacing", 6,
+                "row-homogeneous", TRUE,
+                "column-homogeneous", TRUE,
+                NULL);
+
   self->priv->columns = 0;
 
   self->priv->reflowing = FALSE;

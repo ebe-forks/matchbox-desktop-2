@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2007 OpenedHand Ltd
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -20,7 +20,6 @@
 #define _TAKU_TABLE
 
 #include <gtk/gtk.h>
-#include "taku-tile.h"
 
 G_BEGIN_DECLS
 
@@ -49,12 +48,12 @@ G_BEGIN_DECLS
 typedef struct _TakuTablePrivate TakuTablePrivate;
 
 typedef struct {
-  GtkTable parent;
+  GtkGrid parent;
   TakuTablePrivate *priv;
 } TakuTable;
 
 typedef struct {
-  GtkTableClass parent_class;
+  GtkGridClass parent_class;
 } TakuTableClass;
 
 GType taku_table_get_type (void);
