@@ -48,8 +48,10 @@ on_item_added (TakuMenu *menu, TakuMenuItem *item, gpointer null)
 
   tile = taku_launcher_tile_new_from_item (item);
 
-  if (tile)
+  if (tile) {
+    gtk_widget_show (tile);
     gtk_container_add (GTK_CONTAINER (table), tile);
+  }
 }
 
 static void
@@ -116,10 +118,11 @@ load_items (TakuMenu *menu)
     if (!l->data)
       continue;
     tile = taku_launcher_tile_new_from_item (l->data);
-    if (tile)
+    if (tile) {
+      gtk_widget_show (tile);
       gtk_container_add (GTK_CONTAINER (table), tile);
+    }
   }
-
 }
 
 #ifndef STANDALONE
@@ -192,7 +195,7 @@ create_desktop (void)
 #else
   x_monitor_workarea (gtk_widget_get_screen (window), workarea_changed);
 #endif
-  
+
   /* Navigation bar */
   bar = TAKU_CATEGORY_BAR (taku_category_bar_new ());
   gtk_widget_show (GTK_WIDGET (bar));
@@ -223,8 +226,8 @@ create_desktop (void)
   taku_category_bar_set_categories (bar, categories);
 
   g_signal_connect (menu, "item-added", G_CALLBACK (on_item_added), NULL);
-  g_signal_connect (menu, "item-removed", G_CALLBACK (on_item_removed), NULL);  
-  
+  g_signal_connect (menu, "item-removed", G_CALLBACK (on_item_removed), NULL);
+
   load_items (menu);
 
   return window;
@@ -235,7 +238,7 @@ destroy_desktop (void)
 {
   while (categories) {
     TakuLauncherCategory *category = categories->data;
-    
+
     taku_launcher_category_free (category);
 
     categories = g_list_delete_link (categories, categories);

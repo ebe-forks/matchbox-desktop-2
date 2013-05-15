@@ -190,19 +190,13 @@ reflow_foreach (gpointer widget, gpointer user_data)
   /* Filter out unwanted items */
   if (table->priv->filter != NULL) {
     if (!taku_tile_matches_filter (tile, table->priv->filter)) {
-      gtk_container_child_set (container, GTK_WIDGET (widget),
-                               "left-attach", 0,
-                               "top-attach", 0,
-                               "width", 1,
-                               "height", 1,
-                               NULL);
-      gtk_widget_hide (widget);
+      gtk_widget_set_child_visible (widget, FALSE);
       return;
     }
   }
 
   /* We want this item. Align. */
-  gtk_widget_show (widget);
+  gtk_widget_set_child_visible (widget, TRUE);
 
   gtk_container_child_set (container, GTK_WIDGET (widget),
                            "left-attach", table->priv->x,
@@ -247,12 +241,10 @@ reflow (TakuTable *table)
   for (i = g_sequence_get_length (table->priv->seq);
        i < table->priv->columns; i++) {
     GtkWidget *dummy = gtk_label_new (NULL);
-    gtk_widget_show (dummy);
+    gtk_widget_set_child_visible (dummy, TRUE);
 
-    gtk_grid_attach (GTK_GRID (table),
-                     dummy,
-                     table->priv->x, table->priv->y,
-                     1, 1);
+    gtk_grid_attach (GTK_GRID (table), dummy,
+                     table->priv->x, table->priv->y, 1, 1);
     table->priv->x++;
 
     table->priv->dummies = g_list_prepend (table->priv->dummies, dummy);
@@ -314,19 +306,18 @@ calculate_columns (GtkWidget *widget)
   TakuTable *table = TAKU_TABLE (widget);
   PangoContext *context;
   PangoFontMetrics *metrics;
-  int width, new_cols;
+  int table_width, width, new_cols;
   guint cell_text_width = DEFAULT_WIDTH;
-  GtkAllocation allocation;
 
-  gtk_widget_get_allocation (widget, &allocation);
+  table_width = gtk_widget_get_allocated_width (widget);
 
   /* If we are currently reflowing the tiles, or the final allocation hasn't
      been decided yet, return */
   if (!gtk_widget_get_realized (widget) ||
       table->priv->reflowing ||
-      allocation.width <= 1)
+      table_width <= 1) {
     return;
-
+  }
   context = gtk_widget_get_pango_context (widget);
   metrics = pango_context_get_metrics (context, gtk_widget_get_style (widget)->font_desc, NULL);
 
@@ -334,8 +325,7 @@ calculate_columns (GtkWidget *widget)
 
   width = PANGO_PIXELS
           (cell_text_width * pango_font_metrics_get_approximate_char_width (metrics));
-  new_cols = MAX (1, allocation.width / width);
-
+  new_cols = MAX (1, table_width / width);
   if (table->priv->columns != new_cols) {
     table->priv->columns = new_cols;
 
@@ -369,8 +359,8 @@ taku_table_unrealize (GtkWidget *widget)
 
 static void
 on_size_allocate (GtkWidget     *widget,
-                          GtkAllocation *allocation,
-                          gpointer       user_data)
+                  GtkAllocation *allocation,
+                  gpointer       user_data)
 {
   calculate_columns (widget);
 }

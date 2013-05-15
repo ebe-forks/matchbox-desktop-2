@@ -35,6 +35,8 @@ taku_tile_class_init (TakuTileClass *klass)
 static void
 taku_tile_init (TakuTile *self)
 {
+  gtk_widget_set_hexpand (GTK_WIDGET (self), TRUE);
+  gtk_widget_set_vexpand (GTK_WIDGET (self), FALSE);
 }
 
 /* TODO steal GtkButton's draw function and comment out the focus draw code */

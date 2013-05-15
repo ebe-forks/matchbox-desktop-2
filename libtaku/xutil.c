@@ -44,9 +44,8 @@ net_workarea_changed (WorkAreaFunc cb, GdkWindow *window)
   int result, xres, real_format;
   unsigned long items_read, items_left;
   long *coords;
-
   Atom workarea_atom = gdk_x11_get_xatom_by_name ("_NET_WORKAREA");
-  
+
   gdk_error_trap_push ();
   result = XGetWindowProperty (gdk_x11_get_default_xdisplay (), GDK_ROOT_WINDOW (),
                                workarea_atom, 0L, 4L, False,
