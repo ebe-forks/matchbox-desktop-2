@@ -63,7 +63,7 @@ load_style (GtkWidget *widget)
   provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_path (GTK_CSS_PROVIDER (provider),
                                    PKGDATADIR "/style.css", &error);
-  if (error) {
+  if (error && !g_error_matches (error, GTK_CSS_PROVIDER_ERROR, GTK_CSS_PROVIDER_ERROR_IMPORT)) {
     g_warning ("Cannot load CSS: %s", error->message);
     g_error_free (error);
   } else {
