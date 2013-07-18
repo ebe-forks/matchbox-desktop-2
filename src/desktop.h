@@ -23,7 +23,12 @@
 
 #include <gtk/gtk.h>
 
+typedef enum {
+  MODE_DESKTOP,
+  MODE_TITLEBAR,
+  MODE_WINDOW
+} DesktopMode;
 
-GtkWidget *create_desktop (void);
+GtkWidget *create_desktop (DesktopMode mode);
 
 void destroy_desktop (void);

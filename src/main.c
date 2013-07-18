@@ -78,15 +78,59 @@ int
 main (int argc, char **argv)
 {
   GtkWidget *desktop;
+  char *mode_string = NULL;
+  GError *error = NULL;
+  GOptionContext *option_context;
+  GOptionGroup *option_group;
+  GOptionEntry option_entries[] = {
+    { "mode", 'm', 0, G_OPTION_ARG_STRING, &mode_string,
+      N_("Desktop mode"), N_("DESKTOP|TITLEBAR|WINDOW") },
+    { NULL }
+  };
+  DesktopMode mode = MODE_DESKTOP;
 
-  gtk_init (&argc, &argv);
   g_set_application_name (_("Desktop"));
+
+  option_context = g_option_context_new (NULL);
+  option_group = g_option_group_new ("matchbox-desktop",
+                                     N_("Matchbox Desktop"),
+                                     N_("Matchbox Desktop options"),
+                                     NULL, NULL);
+  g_option_group_add_entries (option_group, option_entries);
+  g_option_context_set_main_group (option_context, option_group);
+  g_option_context_add_group (option_context, gtk_get_option_group (TRUE));
+
+  error = NULL;
+  if (!g_option_context_parse (option_context, &argc, &argv, &error)) {
+    g_option_context_free (option_context);
+
+    g_warning ("%s", error->message);
+    g_error_free (error);
+
+    return 1;
+  }
+
+  g_option_context_free (option_context);
+
+  if (mode_string) {
+    if (g_ascii_strcasecmp (mode_string, "desktop") == 0) {
+      mode = MODE_DESKTOP;
+    } else if (g_ascii_strcasecmp (mode_string, "titlebar") == 0) {
+      mode = MODE_TITLEBAR;
+    } else if (g_ascii_strcasecmp (mode_string, "window") == 0) {
+      mode = MODE_WINDOW;
+    } else {
+      g_printerr ("Unparsable mode '%s', expecting desktop/titlebar/window\n", mode_string);
+      return 1;
+    }
+    g_free (mode_string);
+  }
 
 #if WITH_DBUS
   g_idle_add (emit_loaded_signal, NULL);
 #endif
 
-  desktop = create_desktop ();
+  desktop = create_desktop (mode);
   load_style (desktop);
   gtk_main ();
   destroy_desktop ();

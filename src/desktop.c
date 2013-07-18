@@ -125,14 +125,12 @@ load_items (TakuMenu *menu)
   }
 }
 
-#ifndef STANDALONE
 static gboolean
 delete_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
   /* prevent default handler from destroying the window */
   return TRUE;
 }
-#endif
 
 static void
 workarea_changed (int x, int y, int w, int h)
@@ -143,13 +141,11 @@ workarea_changed (int x, int y, int w, int h)
 }
 
 GtkWidget *
-create_desktop (void)
+create_desktop (DesktopMode mode)
 {
   GtkWidget *window, *scrolled, *viewport;
-#ifndef STANDALONE
   GdkScreen *screen;
-#endif
-  int screen_w, screen_h;
+  int width, height;
 
   /* Register the magic taku-icon size so that it can be controlled from the
      theme. */
@@ -159,23 +155,32 @@ create_desktop (void)
   gtk_widget_set_name (window, "TakuWindow");
   gtk_window_set_title (GTK_WINDOW (window), _("Desktop"));
 
-#ifndef STANDALONE
-  g_signal_connect (window, "delete-event", G_CALLBACK (delete_event_cb), NULL);
-  gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
-  gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
-  gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
-
   screen = gtk_widget_get_screen (window);
-  screen_w = gdk_screen_get_width (screen);
-  screen_h = gdk_screen_get_height (screen);
-#else
-  g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
-  screen_w = 640;
-  screen_h = 480;
-#endif
 
-  gtk_window_set_default_size (GTK_WINDOW (window), screen_w, screen_h);
+  switch (mode) {
+  case MODE_DESKTOP:
+    gtk_window_fullscreen (GTK_WINDOW (window));
+  case MODE_TITLEBAR:
+    gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
+    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
+    gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
+    g_signal_connect (window, "delete-event", G_CALLBACK (delete_event_cb), NULL);
 
+    width = gdk_screen_get_width (screen);
+    height = gdk_screen_get_height (screen);
+    gtk_window_set_default_size (GTK_WINDOW (window), width, height);
+    gtk_window_move (GTK_WINDOW (window), 0, 0);
+    break;
+  case MODE_WINDOW:
+    width = 640;
+    height = 480;
+    gtk_window_set_default_size (GTK_WINDOW (window), width, height);
+    g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
+    /* TODO: fake workarea_changed calls on window resize */
+    break;
+  default:
+    g_assert_not_reached ();
+  }
   gtk_widget_show (window);
 
   /* This fixed is used to position the desktop itself in the work area */
@@ -187,14 +192,12 @@ create_desktop (void)
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_widget_show (box);
   gtk_fixed_put (GTK_FIXED (fixed), box, 0, 0);
-  /* Set a sane default in case there is no work area defined yet */
-  workarea_changed (0, 0, screen_w, screen_h);
 
-#ifdef STANDALONE
-  /* TODO: fake workarea_changed calls on window resize */
-#else
-  x_monitor_workarea (gtk_widget_get_screen (window), workarea_changed);
-#endif
+  /* Set a sane default in case there is no work area defined yet */
+  workarea_changed (0, 0, width, height);
+  if (mode == MODE_DESKTOP || mode == MODE_TITLEBAR) {
+    x_monitor_workarea (screen, workarea_changed);
+  }
 
   /* Navigation bar */
   bar = TAKU_CATEGORY_BAR (taku_category_bar_new ());
