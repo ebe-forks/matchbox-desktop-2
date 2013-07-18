@@ -1,12 +1,8 @@
 SUBDIRS = libtaku src
 
 MAINTAINERCLEANFILES = \
-	$(srcdir)/INSTALL \
-	$(srcdir)/aclocal.m4 \
-	$(srcdir)/config.h.in \
-	$(srcdir)/depcomp \
-	$(srcdir)/install-sh \
-	$(srcdir)/missing \
-	`find "$(srcdir)" -type f -name Makefile.in -print`
+	$(GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL) \
+	$(GITIGNORE_MAINTAINERCLEANFILES_MAKEFILE_IN) \
+	$(GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL)
 
 -include $(top_srcdir)/git.mk
