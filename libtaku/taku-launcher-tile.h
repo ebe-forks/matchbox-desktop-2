@@ -72,6 +72,8 @@ GtkWidget* taku_launcher_tile_new (void);
 GtkWidget* taku_launcher_tile_new_from_item (TakuMenuItem *item);
 TakuMenuItem* taku_launcher_tile_get_item (TakuLauncherTile *tile);
 
+void taku_launcher_tile_activate (TakuLauncherTile *tile);
+
 void taku_launcher_tile_add_group (TakuLauncherTile *tile, TakuLauncherCategory *category);
 
 void taku_launcher_tile_remove_group (TakuLauncherTile *tile, TakuLauncherCategory *category);

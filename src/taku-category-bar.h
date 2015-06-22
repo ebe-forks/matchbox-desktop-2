@@ -20,7 +20,7 @@
 #define _TAKU_CATEGORY_BAR
 
 #include <gtk/gtk.h>
-#include <libtaku/taku-table.h>
+#include "libtaku/taku-launcher-tile.h"
 
 G_BEGIN_DECLS
 
@@ -58,9 +58,10 @@ GType taku_category_bar_get_type (void);
 
 GtkWidget* taku_category_bar_new (void);
 
-void taku_category_bar_set_table (TakuCategoryBar *bar, TakuTable *table);
+void taku_category_bar_set_table (TakuCategoryBar *bar, GtkFlowBox *table);
 void taku_category_bar_set_categories (TakuCategoryBar *bar, GList *categories);
 
+TakuLauncherCategory* taku_category_bar_get_current (TakuCategoryBar *bar);
 void taku_category_bar_next (TakuCategoryBar *bar);
 void taku_category_bar_previous (TakuCategoryBar *bar);
 

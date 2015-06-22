@@ -26,7 +26,6 @@
 #include <ctype.h>
 
 #include "libtaku/taku-menu.h"
-#include "libtaku/taku-table.h"
 #include "libtaku/taku-icon-tile.h"
 #include "libtaku/taku-launcher-tile.h"
 #include "taku-category-bar.h"
@@ -37,7 +36,7 @@
 
 static GList *categories;
 static TakuCategoryBar *bar;
-static TakuTable *table;
+static GtkWidget *table;
 static TakuMenu *menu;
 static GtkWidget *fixed, *box;
 
@@ -88,16 +87,14 @@ focus_cb (GtkWidget *widget, GtkDirectionType direction, gpointer user_data)
 
   if (direction == GTK_DIR_LEFT) {
     taku_category_bar_previous (bar);
-
-    gtk_widget_grab_focus (GTK_WIDGET (table));
-
+    gtk_widget_child_focus (table, GTK_DIR_LEFT);
     return TRUE;
   } else if (direction == GTK_DIR_RIGHT) {
     taku_category_bar_next (bar);
-
-    gtk_widget_grab_focus (GTK_WIDGET (table));
-
+    gtk_widget_child_focus (table, GTK_DIR_RIGHT);
     return TRUE;
+  } else if (direction == GTK_DIR_UP) {
+    gtk_flow_box_unselect_all (GTK_FLOW_BOX (table));
   }
 
   return FALSE;
@@ -140,6 +137,56 @@ workarea_changed (int x, int y, int w, int h)
   gtk_fixed_move (GTK_FIXED (fixed), box, x, y);
 }
 
+static void table_size_allocate_cb (GtkWidget    *table,
+                                    GdkRectangle *allocation,
+                                    gpointer      user_data)
+{
+  gtk_flow_box_set_min_children_per_line (GTK_FLOW_BOX (table), allocation->width / 200); 
+}
+
+static gboolean
+table_filter (GtkFlowBoxChild *child, gpointer user_data)
+{
+  TakuTile *tile = TAKU_TILE (gtk_bin_get_child (GTK_BIN (child)));
+
+  return taku_tile_matches_filter (tile, taku_category_bar_get_current (bar));
+}
+
+static gint
+table_sort (GtkFlowBoxChild *child1,
+            GtkFlowBoxChild *child2,
+            gpointer user_data)
+{
+  GtkWidget *a, *b;
+  const char *ka, *kb;
+
+  a = gtk_bin_get_child (GTK_BIN(child1));
+  b = gtk_bin_get_child (GTK_BIN(child2));
+  ka = taku_tile_get_sort_key (TAKU_TILE (a));
+  kb = taku_tile_get_sort_key (TAKU_TILE (b));
+
+  if (ka != NULL && kb == NULL)
+    return 1;
+  else if (ka == NULL && kb != NULL)
+    return -1;
+  else if (ka == NULL && kb == NULL)
+    return 0;
+  else
+    return strcmp (ka, kb);
+}
+
+static void
+table_child_activated_cb (GtkFlowBox *table,
+                          GtkFlowBoxChild *child,
+                          gpointer userdata)
+{
+  GtkWidget *tile;
+
+  tile = gtk_bin_get_child (GTK_BIN (child));
+  if (TAKU_IS_LAUNCHER_TILE (tile))
+    taku_launcher_tile_activate (TAKU_LAUNCHER_TILE (tile));
+}
+
 GtkWidget *
 create_desktop (DesktopMode mode)
 {
@@ -157,6 +204,10 @@ create_desktop (DesktopMode mode)
 
   screen = gtk_widget_get_screen (window);
 
+  /* Main VBox */
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  gtk_widget_show (box);
+
   switch (mode) {
   case MODE_DESKTOP:
     gtk_window_fullscreen (GTK_WINDOW (window));
@@ -170,34 +221,32 @@ create_desktop (DesktopMode mode)
     height = gdk_screen_get_height (screen);
     gtk_window_set_default_size (GTK_WINDOW (window), width, height);
     gtk_window_move (GTK_WINDOW (window), 0, 0);
+
+    /* This fixed is used to position the desktop itself in the work area */
+    fixed = gtk_fixed_new ();
+    gtk_widget_show (fixed);
+    gtk_container_add (GTK_CONTAINER (window), fixed);
+    gtk_fixed_put (GTK_FIXED (fixed), box, 0, 0);
+
+    /* Set a sane default in case there is no work area defined yet */
+    workarea_changed (0, 0, width, height);
+    if (mode == MODE_DESKTOP || mode == MODE_TITLEBAR) {
+      x_monitor_workarea (screen, workarea_changed);
+    }
+
     break;
   case MODE_WINDOW:
     width = 640;
     height = 480;
     gtk_window_set_default_size (GTK_WINDOW (window), width, height);
     g_signal_connect (window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
-    /* TODO: fake workarea_changed calls on window resize */
+    gtk_container_add (GTK_CONTAINER (window), box);
     break;
   default:
     g_assert_not_reached ();
   }
   gtk_widget_show (window);
 
-  /* This fixed is used to position the desktop itself in the work area */
-  fixed = gtk_fixed_new ();
-  gtk_widget_show (fixed);
-  gtk_container_add (GTK_CONTAINER (window), fixed);
-
-  /* Main VBox */
-  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_widget_show (box);
-  gtk_fixed_put (GTK_FIXED (fixed), box, 0, 0);
-
-  /* Set a sane default in case there is no work area defined yet */
-  workarea_changed (0, 0, width, height);
-  if (mode == MODE_DESKTOP || mode == MODE_TITLEBAR) {
-    x_monitor_workarea (screen, workarea_changed);
-  }
 
   /* Navigation bar */
   bar = TAKU_CATEGORY_BAR (taku_category_bar_new ());
@@ -212,20 +261,36 @@ create_desktop (DesktopMode mode)
   gtk_box_pack_start (GTK_BOX (box), scrolled, TRUE, TRUE, 0);
 
   viewport = gtk_viewport_new (NULL, NULL);
+  gtk_widget_set_valign (viewport, GTK_ALIGN_START);
   gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport),
                                 GTK_SHADOW_NONE);
   gtk_widget_show (viewport);
   gtk_container_add (GTK_CONTAINER (scrolled), viewport);
 
-  table = TAKU_TABLE (taku_table_new ());
+  table = gtk_flow_box_new ();
+  gtk_flow_box_set_homogeneous (GTK_FLOW_BOX (table), TRUE);
+  gtk_flow_box_set_row_spacing (GTK_FLOW_BOX (table), 6);
+  gtk_flow_box_set_column_spacing (GTK_FLOW_BOX (table), 6);
+  g_signal_connect (table, "child-activated",
+                    G_CALLBACK (table_child_activated_cb), NULL);
+  g_signal_connect (table, "size-allocate",
+                    G_CALLBACK (table_size_allocate_cb), NULL);
   g_signal_connect_after (table, "focus", G_CALLBACK (focus_cb), NULL);
-  gtk_widget_show (GTK_WIDGET (table));
-  gtk_container_add (GTK_CONTAINER (viewport), GTK_WIDGET (table));
+  gtk_flow_box_set_filter_func (GTK_FLOW_BOX (table),
+                                (GtkFlowBoxFilterFunc)table_filter,
+                                bar, NULL);
+  gtk_flow_box_set_sort_func (GTK_FLOW_BOX (table),
+                              (GtkFlowBoxSortFunc)table_sort,
+                              NULL, NULL);
+  gtk_widget_show (table);
+  gtk_container_add (GTK_CONTAINER (viewport), table);
+  gtk_flow_box_set_vadjustment (GTK_FLOW_BOX (table),
+                                gtk_scrollable_get_vadjustment (GTK_SCROLLABLE(viewport)));
 
   menu = taku_menu_get_default ();
   categories = taku_menu_get_categories (menu);
 
-  taku_category_bar_set_table (bar, table);
+  taku_category_bar_set_table (bar, GTK_FLOW_BOX (table));
   taku_category_bar_set_categories (bar, categories);
 
   g_signal_connect (menu, "item-added", G_CALLBACK (on_item_added), NULL);

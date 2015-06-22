@@ -25,7 +25,7 @@
 #include <gtk/gtk.h>
 #include "taku-tile.h"
 
-G_DEFINE_ABSTRACT_TYPE (TakuTile, taku_tile, GTK_TYPE_BUTTON);
+G_DEFINE_ABSTRACT_TYPE (TakuTile, taku_tile, GTK_TYPE_BIN);
 
 static void
 taku_tile_class_init (TakuTileClass *klass)

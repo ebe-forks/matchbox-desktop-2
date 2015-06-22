@@ -21,12 +21,11 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
-#include "libtaku/taku-table.h"
 #include "libtaku/taku-launcher-tile.h"
 
 #include "taku-category-bar.h"
 
-G_DEFINE_TYPE (TakuCategoryBar, taku_category_bar, GTK_TYPE_HBOX);
+G_DEFINE_TYPE (TakuCategoryBar, taku_category_bar, GTK_TYPE_BOX);
 
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), TAKU_TYPE_CATEGORY_BAR, TakuCategoryBarPrivate))
@@ -34,7 +33,7 @@ G_DEFINE_TYPE (TakuCategoryBar, taku_category_bar, GTK_TYPE_HBOX);
 #define LIST_DATA "taku-category-bar:list"
 
 typedef struct {
-  TakuTable *table;
+  GtkFlowBox *table;
   GList *categories;
   GList *current_category;
   GtkWidget *prev_button, *popup_button, *next_button;
@@ -78,9 +77,8 @@ set_category (TakuCategoryBar *bar, GList *category_list_item)
   category = category_list_item->data;
 
   gtk_label_set_text (priv->switcher_label, category->name);
-  taku_table_set_filter (priv->table, category);
-
   priv->current_category = category_list_item;
+  gtk_flow_box_invalidate_filter (priv->table);
 }
 
 static void
@@ -285,12 +283,12 @@ taku_category_bar_new (void)
 }
 
 void
-taku_category_bar_set_table (TakuCategoryBar *bar, TakuTable *table)
+taku_category_bar_set_table (TakuCategoryBar *bar, GtkFlowBox *table)
 {
   TakuCategoryBarPrivate *priv;
 
   g_return_if_fail (TAKU_IS_CATEGORY_BAR (bar));
-  g_return_if_fail (TAKU_IS_TABLE (table));
+  g_return_if_fail (GTK_IS_FLOW_BOX (table));
 
   priv = GET_PRIVATE (bar);
   
@@ -319,6 +317,17 @@ taku_category_bar_set_categories (TakuCategoryBar *bar, GList *categories)
     gtk_widget_set_sensitive (priv->popup_button, FALSE);
     gtk_widget_set_sensitive (priv->next_button, FALSE);
   }
+}
+
+TakuLauncherCategory*
+taku_category_bar_get_current (TakuCategoryBar *bar)
+{
+  TakuCategoryBarPrivate *priv;
+
+  g_return_if_fail (TAKU_IS_CATEGORY_BAR (bar));
+  priv = GET_PRIVATE (bar);
+
+  return (TakuLauncherCategory*)priv->current_category->data;
 }
 
 void

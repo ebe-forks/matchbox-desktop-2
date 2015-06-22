@@ -104,7 +104,7 @@ taku_launcher_tile_finalize (GObject *object)
 }
 
 /*
- * Timeout callback to restore the state of the widget after the clicked state
+ * Timeout callback to restore the state of the widget after the activated state
  * change.
  */
 static gboolean
@@ -114,8 +114,8 @@ reset_state (gpointer data)
   return FALSE;
 }
 
-static void
-taku_launcher_tile_clicked (GtkButton *tile, gpointer user_data)
+void
+taku_launcher_tile_activate (TakuLauncherTile *tile)
 {
   TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
 
@@ -160,8 +160,6 @@ static void
 taku_launcher_tile_init (TakuLauncherTile *self)
 {
   self->priv = GET_PRIVATE (self);
-
-  g_signal_connect (self, "clicked", G_CALLBACK (taku_launcher_tile_clicked), NULL);
 }
 
 GtkWidget *

@@ -10,7 +10,6 @@ libtaku_a_SOURCES = \
 	taku-launcher-tile.c taku-launcher-tile.h \
 	taku-menu.h \
 	taku-menu-desktop.c \
-	taku-table.c taku-table.h \
 	taku-tile.c taku-tile.h \
 	xutil.c xutil.h \
 	taku-queue-source.c taku-queue-source.h
