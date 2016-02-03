@@ -210,7 +210,6 @@ create_desktop (DesktopMode mode)
 
   switch (mode) {
   case MODE_DESKTOP:
-    gtk_window_fullscreen (GTK_WINDOW (window));
   case MODE_TITLEBAR:
     gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DESKTOP);
     gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
