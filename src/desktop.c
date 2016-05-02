@@ -194,10 +194,6 @@ create_desktop (DesktopMode mode)
   GdkScreen *screen;
   int width, height;
 
-  /* Register the magic taku-icon size so that it can be controlled from the
-     theme. */
-  gtk_icon_size_register ("taku-icon", 64, 64);
-
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_name (window, "TakuWindow");
   gtk_window_set_title (GTK_WINDOW (window), _("Desktop"));

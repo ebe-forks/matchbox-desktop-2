@@ -38,8 +38,6 @@ struct _TakuLauncherTilePrivate
   gboolean loading_icon; /* If the icon is queued to be loaded */
 };
 
-/* Icon size ID for the TakuIcon size */
-static GtkIconSize icon_size;
 /* Queue of tiles with pending icons to load */
 static GQueue queue = G_QUEUE_INIT;
 
@@ -50,6 +48,7 @@ load_icon (gpointer data)
   TakuLauncherTile *tile;
   GdkPixbuf *pixbuf;
   int i;
+  guint size;
   
   /* Per iteration, load a few icons at once */
   for (i = 0; i < 5; i++) {
@@ -58,8 +57,11 @@ load_icon (gpointer data)
     if (tile == NULL) {
       return TRUE;
     }
-    
-    pixbuf = taku_menu_item_get_icon (tile->priv->item, (GtkWidget*)tile, icon_size);
+
+    gtk_widget_style_get (GTK_WIDGET (tile),
+                          "taku-icon-size", &size,
+                          NULL);
+    pixbuf = taku_menu_item_get_icon (tile->priv->item, size);
     
     if (pixbuf) {
       taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile), pixbuf);
@@ -110,7 +112,7 @@ taku_launcher_tile_finalize (GObject *object)
 static gboolean
 reset_state (gpointer data)
 {
-  gtk_widget_set_state (GTK_WIDGET (data), GTK_STATE_NORMAL);
+  gtk_widget_unset_state_flags (GTK_WIDGET (data), GTK_STATE_FLAG_ACTIVE);
   return FALSE;
 }
 
@@ -119,7 +121,7 @@ taku_launcher_tile_activate (TakuLauncherTile *tile)
 {
   TakuLauncherTile *launcher = TAKU_LAUNCHER_TILE (tile);
 
-  gtk_widget_set_state (GTK_WIDGET (tile), GTK_STATE_ACTIVE);
+  gtk_widget_set_state_flags (GTK_WIDGET (tile), GTK_STATE_FLAG_ACTIVE, FALSE);
 
   g_timeout_add (500, reset_state, tile);
 
@@ -147,12 +149,6 @@ taku_launcher_tile_class_init (TakuLauncherTileClass *klass)
 
   object_class->finalize = taku_launcher_tile_finalize;
 
-  /* Lookup the icon size from the theme */
-  icon_size = gtk_icon_size_from_name ("taku-icon");
-  if (icon_size == GTK_ICON_SIZE_INVALID) {
-    g_warning ("taku-icon size not registered, falling back");
-    icon_size = GTK_ICON_SIZE_BUTTON;
-  }
   taku_idle_queue_add (&queue, load_icon, NULL);
 }
 
@@ -174,17 +170,23 @@ taku_launcher_tile_new_from_item (TakuMenuItem *item)
 {
   TakuLauncherTile *tile;
   GList *l;
+  uint size;
 
   tile = TAKU_LAUNCHER_TILE (taku_launcher_tile_new ());
   tile->priv->item = item;
-  
+
+ 
+  gtk_widget_style_get (GTK_WIDGET (tile),
+                        "taku-icon-size", &size,
+                        NULL);
+ 
   taku_icon_tile_set_primary (TAKU_ICON_TILE (tile), 
                               taku_menu_item_get_name (item));
   taku_icon_tile_set_secondary (TAKU_ICON_TILE (tile),
                                 taku_menu_item_get_description (item));
   taku_icon_tile_set_pixbuf (TAKU_ICON_TILE (tile),
-                             gtk_widget_render_icon (GTK_WIDGET (tile), GTK_STOCK_REFRESH, icon_size, NULL));
-                                                     
+                             get_icon ("view-refresh", size));
+
   /* Don't need to update the icon here, because we'll get a style-set signal
      when the widget is realised which will update the icon. */
 

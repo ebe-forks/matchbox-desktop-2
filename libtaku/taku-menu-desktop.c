@@ -122,15 +122,11 @@ taku_menu_item_get_description (TakuMenuItem *item)
 }
 
 GdkPixbuf*
-taku_menu_item_get_icon (TakuMenuItem *item, GtkWidget *widget, GtkIconSize size)
+taku_menu_item_get_icon (TakuMenuItem *item, int size)
 {
-  int width = 64;
-
   g_return_val_if_fail (item, NULL);
 
-  gtk_icon_size_lookup (size, &width, NULL);
-
-  return get_icon (item->icon_name, width);
+  return get_icon (item->icon_name, size);
 }
 
 GList*

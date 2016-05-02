@@ -103,8 +103,7 @@ taku_menu_item_get_description (TakuMenuItem *item);
 
 GdkPixbuf*
 taku_menu_item_get_icon (TakuMenuItem *item, 
-                         GtkWidget *widget, 
-                         GtkIconSize size);
+                         int           size);
 
 GList*
 taku_menu_item_get_categories (TakuMenuItem *item);

@@ -63,14 +63,14 @@ tile_arrange (TakuIconTile *tile)
     
     switch (orientation) {
     case GTK_ORIENTATION_VERTICAL :
-      gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.5, 0.5);
-      gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.5, 0.5);
+      gtk_label_set_xalign (GTK_LABEL (tile->priv->primary), 0.5);
+      gtk_label_set_xalign (GTK_LABEL (tile->priv->secondary), 0.5);
       box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
       break;
     default:
     case GTK_ORIENTATION_HORIZONTAL :
-      gtk_misc_set_alignment (GTK_MISC (tile->priv->primary), 0.0, 0.5);
-      gtk_misc_set_alignment (GTK_MISC (tile->priv->secondary), 0.0, 0.5);
+      gtk_label_set_xalign (GTK_LABEL (tile->priv->primary), 0.0);
+      gtk_label_set_xalign (GTK_LABEL (tile->priv->secondary), 0.0);
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       break;
     }
@@ -243,6 +243,15 @@ taku_icon_tile_class_init (TakuIconTileClass *klass)
                                                               GTK_TYPE_ORIENTATION,
                                                               GTK_ORIENTATION_HORIZONTAL,
                                                               G_PARAM_READABLE));
+  gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_uint ("taku-icon-size",
+                                                              "Taku icon size",
+                                                              "Icon size used by all Taku Icons",
+                                                              0,
+                                                              256,
+                                                              64,
+                                                              G_PARAM_READABLE));
+
 }
 
 static void
@@ -311,10 +320,15 @@ taku_icon_tile_set_pixbuf (TakuIconTile *tile, GdkPixbuf *pixbuf)
 void
 taku_icon_tile_set_icon_name (TakuIconTile *tile, const char *name)
 {
+  uint size;
   g_return_if_fail (TAKU_IS_ICON_TILE (tile));
 
+  gtk_widget_style_get (GTK_WIDGET (tile),
+                        "taku-icon-size", &size,
+                        NULL);
+
   gtk_image_set_from_icon_name (GTK_IMAGE (tile->priv->icon),
-                                name, gtk_icon_size_from_name ("taku-icon"));
+                                name, size);
 }
 
 void
