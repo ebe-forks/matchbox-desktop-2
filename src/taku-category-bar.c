@@ -192,7 +192,6 @@ popup_menu (GtkWidget *button, GdkEventButton *event, gpointer user_data)
 
     label = gtk_label_new (category->name);
     make_bold (GTK_LABEL (label));
-    gtk_misc_set_alignment (GTK_MISC (label), 0.5, 0.0);
     gtk_widget_show (label);
     gtk_container_add (GTK_CONTAINER (menu_item), label);
   }
@@ -216,27 +215,20 @@ static void
 taku_category_bar_init (TakuCategoryBar *bar)
 {
   TakuCategoryBarPrivate *priv;
-  GtkWidget *button, *arrow;
-  GtkSizeGroup *size_group;
+  GtkWidget *button;
 
   priv = GET_PRIVATE (bar);
 
-  size_group = gtk_size_group_new (GTK_SIZE_GROUP_VERTICAL);
-
   /* Previous button */
 
-  priv->prev_button = button = gtk_button_new ();
+  priv->prev_button = button = gtk_button_new_from_icon_name ("go-previous-symbolic",
+                                                              GTK_ICON_SIZE_BUTTON);
   gtk_widget_set_name (button, "MatchboxDesktopPrevButton");
   atk_object_set_name (gtk_widget_get_accessible (button), "GroupPrevious");
   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (prev_category), bar);
   gtk_widget_show (button);
   gtk_box_pack_start (GTK_BOX (bar), button, FALSE, TRUE, 0);
-
-  arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
-  gtk_widget_show (arrow);
-  gtk_container_add (GTK_CONTAINER (button), arrow);
-  gtk_size_group_add_widget (size_group, arrow);
 
   /* Category name button */
   
@@ -252,11 +244,11 @@ taku_category_bar_init (TakuCategoryBar *bar)
   make_bold (GTK_LABEL (priv->switcher_label));
   gtk_widget_show (GTK_WIDGET (priv->switcher_label));
   gtk_container_add (GTK_CONTAINER (button), GTK_WIDGET (priv->switcher_label));
-  gtk_size_group_add_widget (size_group, GTK_WIDGET (priv->switcher_label));
 
   /* Next button */
 
-  priv->next_button = button = gtk_button_new ();
+  priv->next_button = button = gtk_button_new_from_icon_name ("go-next-symbolic",
+                                                              GTK_ICON_SIZE_BUTTON);
   gtk_widget_set_name (button, "MatchboxDesktopNextButton");
   atk_object_set_name (gtk_widget_get_accessible (button), "GroupNext");
 
@@ -264,13 +256,6 @@ taku_category_bar_init (TakuCategoryBar *bar)
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (next_category), bar);
   gtk_widget_show (button);
   gtk_box_pack_end (GTK_BOX (bar), button, FALSE, TRUE, 0);
-
-  arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
-  gtk_widget_show (arrow);
-  gtk_container_add (GTK_CONTAINER (button), arrow);
-  gtk_size_group_add_widget (size_group, arrow);
-  
-  g_object_unref (size_group);
 }
 
 
@@ -324,7 +309,7 @@ taku_category_bar_get_current (TakuCategoryBar *bar)
 {
   TakuCategoryBarPrivate *priv;
 
-  g_return_if_fail (TAKU_IS_CATEGORY_BAR (bar));
+  g_return_val_if_fail (TAKU_IS_CATEGORY_BAR (bar), NULL);
   priv = GET_PRIVATE (bar);
 
   return (TakuLauncherCategory*)priv->current_category->data;
