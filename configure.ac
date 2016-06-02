@@ -1,5 +1,5 @@
 AC_PREREQ(2.52)
-AC_INIT(matchbox-desktop, 2.0, http://o-hand.com)
+AC_INIT(matchbox-desktop, 2.1, [yocto@yoctoproject.org])
 AC_CONFIG_SRCDIR(libtaku/taku-tile.c)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AM_CONFIG_HEADER(config.h)
