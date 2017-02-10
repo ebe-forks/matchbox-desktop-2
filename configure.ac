@@ -1,16 +1,17 @@
 AC_PREREQ(2.52)
-AC_INIT(matchbox-desktop, 2.1, [yocto@yoctoproject.org])
+AC_INIT(matchbox-desktop, 2.1)
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(libtaku/taku-tile.c)
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
-AM_CONFIG_HEADER(config.h)
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CPP
 AC_PROG_CC
 AC_PROG_RANLIB
 
-GNOME_COMPILE_WARNINGS
+WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter"
+AC_SUBST(WARN_CFLAGS)
 
 AC_CHECK_HEADERS([sys/inotify.h], inotify_support=yes, inotify_support=no)
 AM_CONDITIONAL(HAVE_INOTIFY, [test "$inotify_support" = "yes"])
